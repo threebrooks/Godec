@@ -1,5 +1,7 @@
 before_install:
-        - wget -q http://www.cmake.org/files/v3.14/cmake-3.14.5-Linux-x86_64.tar.gz && tar xzf cmake-3.14.5-Linux-x86_64.tar.gz
+        - wget -q http://www.cmake.org/files/v3.14/cmake-3.14.5-Linux-x86_64.tar.gz && tar xzf cmake-3.14.5-Linux-x86_64.tar.gz -C $HOME
+        - export CMAKE=$HOME/cmake-3.14.5-Linux-x86_64/bin/cmake
+        - export MAKE_COMMAND="make -j4 install VERBOSE=1 \&\& make test ARGS=\"-V\""
 
 matrix:
   include:
@@ -133,5 +135,8 @@ matrix:
            PLATFORM=Android
 
 script:
-        -  mkdir cmake-build && cd cmake-build && ../cmake-3.14.5-Linux-x86_64/bin/cmake -DPLATFORM=$PLATFORM $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=../install ../ && make -j4 install VERBOSE=1 && make test ARGS="-V" 
+       - mkdir cmake-build && cd cmake-build
+       - "\"$CMAKE\" -DPLATFORM=$PLATFORM $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=../install ../"
+       - "$MAKE_COMMAND"
+#        -  mkdir cmake-build && cd cmake-build && ../cmake-3.14.5-Linux-x86_64/bin/cmake -DPLATFORM=$PLATFORM $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=../install ../ && make -j4 install VERBOSE=1 && make test ARGS="-V" 
 

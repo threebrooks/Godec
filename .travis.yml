@@ -135,7 +135,7 @@ matrix:
            PLATFORM=Android
 
 script:
-       -  mkdir cmake-build && cd cmake-build && ../cmake-3.14.5-Linux-x86_64/bin/cmake -DPLATFORM=$PLATFORM $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=../install ../ && make -j4 install VERBOSE=1 && make test ARGS="-V" 
+       -  mkdir cmake-build && cd cmake-build && $HOME/cmake-3.14.5-Linux-x86_64/bin/cmake -DPLATFORM=$PLATFORM $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=../install ../ && make -j4 install VERBOSE=1 && make test ARGS="-V" 
 #       - mkdir cmake-build && cd cmake-build
 #       - "\"$CMAKE\" -DPLATFORM=$PLATFORM $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=../install ../"
 #       - "$MAKE_COMMAND"

@@ -12,6 +12,7 @@
 #include <alsa/asoundlib.h>
 #include <alsa/pcm.h>
 #endif
+#include <chrono>
 
 #include <godec/ChannelMessenger.h>
 #include "GodecMessages.h"
@@ -142,6 +143,8 @@ class SoundcardRecorderComponent : public LoopProcessor, SoundDataReceiver {
     uint64_t mTotalPushedSamples;
     std::string mCurrentUttId;
     int mTimeUpsampleFactor;
+    std::chrono::time_point<std::chrono::system_clock> mStartTime;
+    float mRunTime;
 
     boost::mutex mStateMutex;
     SoundcardRecorderState mState;

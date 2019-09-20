@@ -37,6 +37,11 @@ SoundcardRecorderComponent::SoundcardRecorderComponent(std::string id, Component
     std::string soundcardIdentifier = configPt->get<std::string>("soundcard_identifier", "Soundcard identifier on Linux, use 'arecord -L' for list");
     mRecorder = new LinuxAudioRecorder(soundcardIdentifier, samplingRate, numChannels, sampleDepth, chunkSize, this);
 #endif
+    if (startOnBoot) {
+        mRunTime = configPt->get<float>("run_time", "How long to record, in seconds");
+    } else {
+        mRunTime = FLT_MAX;
+    }
 
     if (startOnBoot) {
         mState = Pushing;
@@ -56,12 +61,14 @@ SoundcardRecorderComponent::SoundcardRecorderComponent(std::string id, Component
 SoundcardRecorderComponent::~SoundcardRecorderComponent() {}
 
 void SoundcardRecorderComponent::Start() {
+    mStartTime = std::chrono::system_clock::now();
     mRecorder->startCapture();
     LoopProcessor::Start();
 }
 
 bool SoundcardRecorderComponent::receiveData(long numSamples, float sampleRate, int sampleDepth, int numChannels, const unsigned char* data) {
     boost::unique_lock<boost::mutex> lock(mStateMutex);
+    if ((mState == Pushing) && (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-mStartTime).count() > mRunTime)) mState = ToldToStopPushing;
     if (mState == Pushing || mState == ToldToStopPushing) {
         std::stringstream ss;
         ss << "base_format=PCM;sample_width=" << sampleDepth << ";sample_rate=" << sampleRate << ";vtl_stretch=1.0;num_channels=" << numChannels;

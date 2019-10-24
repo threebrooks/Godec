@@ -128,9 +128,8 @@ matrix:
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python3.6/libpython3.6-dev_3.6.8-1_armhf.deb
       - ar x libpython3.6-dev_3.6.8-1_armhf.deb
       - tar xf data.tar.xz -C $HOME/pydev 
-      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python-numpy/python3-numpy_1.12.1-3_armhf.deb
-      - ar x python3-numpy_1.12.1-3_armhf.deb
-      - tar xf data.tar.xz -C $HOME/pydev 
+      - wget -q https://anaconda.org/rpi/numpy/1.15.1/download/linux-armv7l/numpy-1.15.1-py36_blas_openblash28c00a7_1.tar.bz2
+      - tar xjf numpy-1.15.1-py36_blas_openblash28c00a7_1.tar.bz2 -C $HOME/pydev/usr/
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/e/expat/libexpat1_2.2.0-2+deb9u3_armhf.deb
       - ar x libexpat1_2.2.0-2+deb9u3_armhf.deb
       - tar xf data.tar.xz -C $HOME/pydev 

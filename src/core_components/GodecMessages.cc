@@ -127,12 +127,10 @@ void AudioDecoderMessage::shiftInTime(int64_t deltaT) {
 jobject AudioDecoderMessage::toJNI(JNIEnv* env) {
     jclass AudioDecoderMessageClass = env->FindClass("com/bbn/godec/AudioDecoderMessage");
     jclass DecoderMessageClass = env->FindClass("com/bbn/godec/DecoderMessage");
-    jmethodID jAudioMsgInit = env->GetMethodID(AudioDecoderMessageClass, "<init>", "(Ljava/lang/String;JLcom/bbn/godec/Vector;FF)V");
-    std::string tag = getTag();
-    jstring jTag = env->NewStringUTF(tag.c_str());
+    jmethodID jAudioMsgInit = env->GetMethodID(AudioDecoderMessageClass, "<init>", "(JLcom/bbn/godec/Vector;FF)V");
     jlong jTime = getTime();
     jobject jAudioVectorObj = CreateJNIVector(env, mAudio);
-    jobject jAudioMsg = env->NewObject(AudioDecoderMessageClass, jAudioMsgInit, jTag, jTime, jAudioVectorObj, mSampleRate, mTicksPerSample);
+    jobject jAudioMsg = env->NewObject(AudioDecoderMessageClass, jAudioMsgInit, jTime, jAudioVectorObj, mSampleRate, mTicksPerSample);
 
     jstring jDescriptor = env->NewStringUTF(getFullDescriptorString().c_str());
     jmethodID jSetFullDescriptor = env->GetMethodID(DecoderMessageClass, "setFullDescriptorString", "(Ljava/lang/String;)V");
@@ -141,10 +139,9 @@ jobject AudioDecoderMessage::toJNI(JNIEnv* env) {
 };
 
 DecoderMessage_ptr AudioDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
-    std::string tag;
     uint64_t time;
     std::string descriptorString;
-    JNIGetDecoderMessageVals(env, jMsg, tag, time, descriptorString);
+    JNIGetDecoderMessageVals(env, jMsg,  time, descriptorString);
 
     jclass AudioDecoderMessageClass = env->FindClass("com/bbn/godec/AudioDecoderMessage");
     jclass VectorClass = env->FindClass("com/bbn/godec/Vector");
@@ -169,14 +166,6 @@ DecoderMessage_ptr AudioDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
 #ifndef ANDROID
 PyObject* AudioDecoderMessage::toPython() {
     GodecMessages_init_numpy();
-    PyObject* dict = PyDict_New();
-
-    PyDict_SetItemString(dict, "type", PyUnicode_FromString("AudioDecoderMessage"));
-    PyDict_SetItemString(dict, "tag", PyUnicode_FromString(getTag().c_str()));
-    PyDict_SetItemString(dict, "sample_rate", PyFloat_FromDouble(mSampleRate));
-    PyDict_SetItemString(dict, "ticks_per_sample", PyFloat_FromDouble(mTicksPerSample));
-    PyDict_SetItemString(dict, "time", PyLong_FromLong(getTime()));
-    PyDict_SetItemString(dict, "descriptor", PyUnicode_FromString(getFullDescriptorString().c_str()));
 
     npy_intp featDims[1] {mAudio.size()};
     PyObject* pAudio = PyArray_SimpleNew(1, featDims, NPY_FLOAT32);
@@ -184,27 +173,36 @@ PyObject* AudioDecoderMessage::toPython() {
     for(int idx = 0; idx < mAudio.size(); idx++) {
         *((float*)PyArray_GETPTR1(pAudio, idx)) = mAudio(idx);
     }
-    PyDict_SetItemString(dict, "audio", pAudio);
-    return dict;
+
+    PyObject *pArgList = Py_BuildValue("lOff", getTime(), pAudio, mSampleRate, mTicksPerSample);
+    if (pArgList == NULL) GODEC_ERR << "Could not create arglist";
+    PyObject* pModuleObj = PyImport_ImportModule("godec");
+    if (pModuleObj == NULL) GODEC_ERR << "Could not import godec module";
+    PyObject* pClassObj = PyObject_GetAttrString(pModuleObj, "audio_decoder_message");
+    if (pClassObj == NULL) GODEC_ERR << "Could not find audio_decoder_message";
+    PyObject *pObj = PyObject_CallObject(pClassObj, pArgList);
+    if (pObj == NULL) GODEC_ERR << "Could not instantiate audio_decoder_message";
+
+    PyObject_SetAttrString(pObj, "descriptor",  PyUnicode_FromString(getFullDescriptorString().c_str()));
+    return pObj;
 }
 
 DecoderMessage_ptr AudioDecoderMessage::fromPython(PyObject* pMsg) {
     GodecMessages_init_numpy();
-    std::string tag;
     uint64_t time;
     std::string descriptorString;
-    PythonGetDecoderMessageVals(pMsg, tag, time, descriptorString);
+    PythonGetDecoderMessageVals(pMsg, time, descriptorString);
 
-    PyObject* pSampleRate = PyDict_GetItemString(pMsg,"sample_rate");
+    PyObject* pSampleRate = PyObject_GetAttrString(pMsg,"sample_rate");
     if (pSampleRate == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'sample_rate'!";
     float sampleRate = boost::lexical_cast<float>(PyUnicode_AsUTF8(pSampleRate));
 
-    PyObject* pTicksPerSample = PyDict_GetItemString(pMsg,"ticks_per_sample");
+    PyObject* pTicksPerSample = PyObject_GetAttrString(pMsg,"ticks_per_sample");
     if (pTicksPerSample == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'ticks_per_sample'!";
     float ticksPerSample = boost::lexical_cast<float>(PyUnicode_AsUTF8(pTicksPerSample));
 
     // matrix
-    PyArrayObject* pAudio = (PyArrayObject*)PyDict_GetItemString(pMsg,"audio");
+    PyArrayObject* pAudio = (PyArrayObject*)PyObject_GetAttrString(pMsg,"audio");
     if (pAudio == NULL) GODEC_ERR << "AudioDecoderMessage::fromPython : Dict does not contain field 'audio'!";
     if (PyArray_NDIM(pAudio) != 1) GODEC_ERR << "AudioDecoderMessage::fromPython : audio element is not one-dimensional! Dimension is " << PyArray_NDIM(pAudio);
     npy_intp* pAudioDims = PyArray_SHAPE(pAudio);
@@ -368,9 +366,7 @@ void FeaturesDecoderMessage::shiftInTime(int64_t deltaT) {
 jobject FeaturesDecoderMessage::toJNI(JNIEnv* env) {
     jclass FeaturesDecoderMessageClass = env->FindClass("com/bbn/godec/FeaturesDecoderMessage");
     jclass DecoderMessageClass = env->FindClass("com/bbn/godec/DecoderMessage");
-    jmethodID jFeatMsgInit = env->GetMethodID(FeaturesDecoderMessageClass, "<init>", "(Ljava/lang/String;JLjava/lang/String;Lcom/bbn/godec/Matrix;[JLjava/lang/String;)V");
-    std::string tag = getTag();
-    jstring jTag = env->NewStringUTF(tag.c_str());
+    jmethodID jFeatMsgInit = env->GetMethodID(FeaturesDecoderMessageClass, "<init>", "(JLjava/lang/String;Lcom/bbn/godec/Matrix;[JLjava/lang/String;)V");
     jstring jUtteranceId = env->NewStringUTF(mUtteranceId.c_str());
     jstring jFeatNames = env->NewStringUTF(mFeatureNames.c_str());
     jlong jTime = getTime();
@@ -382,7 +378,7 @@ jobject FeaturesDecoderMessage::toJNI(JNIEnv* env) {
     }
     env->SetLongArrayRegion(jTimestampsArray, 0, (jsize)mFeatureTimestamps.size(), tmpArray);
     delete[] tmpArray;
-    jobject jFeatMsg = env->NewObject(FeaturesDecoderMessageClass, jFeatMsgInit, jTag, jTime, jUtteranceId, jFeatMatrixObj, jTimestampsArray, jFeatNames);
+    jobject jFeatMsg = env->NewObject(FeaturesDecoderMessageClass, jFeatMsgInit, jTime, jUtteranceId, jFeatMatrixObj, jTimestampsArray, jFeatNames);
 
     jstring jDescriptor = env->NewStringUTF(getFullDescriptorString().c_str());
     jmethodID jSetFullDescriptor = env->GetMethodID(DecoderMessageClass, "setFullDescriptorString", "(Ljava/lang/String;)V");
@@ -391,10 +387,9 @@ jobject FeaturesDecoderMessage::toJNI(JNIEnv* env) {
 };
 
 DecoderMessage_ptr FeaturesDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
-    std::string tag;
     uint64_t time;
     std::string descriptorString;
-    JNIGetDecoderMessageVals(env, jMsg, tag, time, descriptorString);
+    JNIGetDecoderMessageVals(env, jMsg, time, descriptorString);
 
     // utterance ID
     jclass FeaturesDecoderMessageClass = env->FindClass("com/bbn/godec/FeaturesDecoderMessage");
@@ -456,19 +451,10 @@ DecoderMessage_ptr FeaturesDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
 
 PyObject* FeaturesDecoderMessage::toPython() {
     GodecMessages_init_numpy();
-    PyObject* dict = PyDict_New();
-
-    PyDict_SetItemString(dict, "type", PyUnicode_FromString("FeaturesDecoderMessage"));
-    PyDict_SetItemString(dict, "tag", PyUnicode_FromString(getTag().c_str()));
-    PyDict_SetItemString(dict, "utterance_id", PyUnicode_FromString(mUtteranceId.c_str()));
-    PyDict_SetItemString(dict, "feature_names", PyUnicode_FromString(mFeatureNames.c_str()));
-    PyDict_SetItemString(dict, "time", PyLong_FromLong(getTime()));
-    PyDict_SetItemString(dict, "descriptor", PyUnicode_FromString(getFullDescriptorString().c_str()));
 
     npy_intp timeDims[1] {(npy_intp)mFeatureTimestamps.size()};
     PyObject* pTimestamps = PyArray_SimpleNewFromData(1, timeDims, NPY_UINT64, &mFeatureTimestamps[0]);
     if (pTimestamps == NULL) GODEC_ERR << "Could not allocate feature timestamps memory";
-    PyDict_SetItemString(dict, "feature_timestamps", pTimestamps);
 
     npy_intp featDims[2] {(npy_intp)mFeatures.rows(), (npy_intp)mFeatures.cols()};
     PyObject* pFeats = PyArray_SimpleNew(2, featDims, NPY_FLOAT32);
@@ -478,25 +464,35 @@ PyObject* FeaturesDecoderMessage::toPython() {
             *((float*)PyArray_GETPTR2(pFeats, row, col)) = mFeatures(row,col);
         }
     }
-    PyDict_SetItemString(dict, "features", pFeats);
-    return dict;
+
+    PyObject *pArgList = Py_BuildValue("lsOsO", getTime(), mUtteranceId.c_str(), pFeats, mFeatureNames.c_str(), pTimestamps);
+    if (pArgList == NULL) GODEC_ERR << "Could not create arglist";
+    PyObject* pModuleObj = PyImport_ImportModule("godec");
+    if (pModuleObj == NULL) GODEC_ERR << "Could not import godec module";
+    PyObject* pClassObj = PyObject_GetAttrString(pModuleObj, "features_decoder_message");
+    if (pClassObj == NULL) GODEC_ERR << "Could not find features_decoder_message";
+    PyObject *pObj = PyObject_CallObject(pClassObj, pArgList);
+    if (pObj == NULL) GODEC_ERR << "Could not instantiate features_decoder_message";
+
+    PyObject_SetAttrString(pObj, "descriptor",  PyUnicode_FromString(getFullDescriptorString().c_str()));
+
+    return pObj;
 }
 DecoderMessage_ptr FeaturesDecoderMessage::fromPython(PyObject* pMsg) {
     GodecMessages_init_numpy();
-    std::string tag;
     uint64_t time;
     std::string descriptorString;
-    PythonGetDecoderMessageVals(pMsg, tag, time, descriptorString);
-    PyObject* pUttId = PyDict_GetItemString(pMsg,"utterance_id");
-    if (pUttId == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'feature_timestamps'!";
+    PythonGetDecoderMessageVals(pMsg, time, descriptorString);
+    PyObject* pUttId = PyObject_GetAttrString(pMsg, "utterance_id");
+    if (pUttId == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'utterance_id'!";
     std::string uttId = PyUnicode_AsUTF8(pUttId);
 
-    PyObject* pFeatureNames = PyDict_GetItemString(pMsg,"feature_names");
+    PyObject* pFeatureNames = PyObject_GetAttrString(pMsg,"feature_names");
     if (pFeatureNames == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'feature_names'!";
     std::string featureNames = PyUnicode_AsUTF8(pFeatureNames);
 
     // timestamps
-    PyArrayObject* pTimestamps = (PyArrayObject*)PyDict_GetItemString(pMsg,"feature_timestamps");
+    PyArrayObject* pTimestamps = (PyArrayObject*)PyObject_GetAttrString(pMsg,"feature_timestamps");
     if (pTimestamps == NULL) GODEC_ERR << "Incoming Python message dict does not contain field 'feature_timestamps'!";
     if (PyArray_NDIM(pTimestamps) != 1) GODEC_ERR << "Incoming Python message, 'feature_timestamps' element is not a one-dimensional numpy array!";
     std::vector<uint64_t> featureTimestamps(PyArray_DIM(pTimestamps,0));
@@ -505,7 +501,7 @@ DecoderMessage_ptr FeaturesDecoderMessage::fromPython(PyObject* pMsg) {
     }
 
     // matrix
-    PyArrayObject* pFeatures = (PyArrayObject*)PyDict_GetItemString(pMsg,"features");
+    PyArrayObject* pFeatures = (PyArrayObject*)PyObject_GetAttrString(pMsg,"features");
     if (pFeatures == NULL) GODEC_ERR << "FeaturesDecoderMessage::fromPython : Dict does not contain field 'features'!";
     if (PyArray_NDIM(pFeatures) != 2) GODEC_ERR << "FeaturesDecoderMessage::fromPython : features element is not two-dimensional! Dimension is " << PyArray_NDIM(pFeatures);
     npy_intp* pFeaturesDims = PyArray_SHAPE(pFeatures);
@@ -591,18 +587,15 @@ DecoderMessage_ptr MatrixDecoderMessage::fromPython(PyObject* pMsg) {
 std::string NbestDecoderMessage::describeThyself() const {
     std::stringstream ss;
     ss << DecoderMessage::describeThyself();
-    ss << "Nbest, " << mWords.size() << " entries, top entry " << (mWords.size() > 0 ? mWords[0].size() : 0) << " words";
+    ss << "Nbest, " << mEntries.size() << " entries, top entry " << (mEntries.size() > 0 ? mEntries[0].mWords.size() : 0) << " words";
     ss << std::endl;
     return ss.str();
 }
 
-DecoderMessage_ptr NbestDecoderMessage::create(uint64_t _time, std::vector<std::vector<std::string>> _text, std::vector<std::vector<uint64_t>> _words, std::vector<std::vector<uint64_t>> _alignment, std::vector<std::vector<float>> _confidences) {
+DecoderMessage_ptr NbestDecoderMessage::create(uint64_t _time, std::vector<NbestEntry> entries) {
     NbestDecoderMessage* msg = new NbestDecoderMessage();
     msg->setTime(_time);
-    msg->mWords = _words;
-    msg->mAlignment = _alignment;
-    msg->mText = _text;
-    msg->mConfidences = _confidences;
+    msg->mEntries = entries;
     return DecoderMessage_ptr(msg);
 }
 
@@ -627,9 +620,9 @@ bool NbestDecoderMessage::sliceOut(uint64_t sliceTime, DecoderMessage_ptr& slice
 
 void NbestDecoderMessage::shiftInTime(int64_t deltaT) {
     setTime((int64_t)getTime()+deltaT);
-    for(int nbestIdx = 0; nbestIdx < mAlignment.size(); nbestIdx++) {
-        for(int algIdx = 0; algIdx < mAlignment[nbestIdx].size(); algIdx++) {
-            mAlignment[nbestIdx][algIdx] += deltaT;
+    for(int nbestIdx = 0; nbestIdx < mEntries.size(); nbestIdx++) {
+        for(int algIdx = 0; algIdx < mEntries[nbestIdx].mAlignment.size(); algIdx++) {
+            mEntries[nbestIdx].mAlignment[algIdx] += deltaT;
         }
     }
 }
@@ -640,23 +633,22 @@ jobject NbestToJniHelper(JNIEnv* env, const NbestDecoderMessage& msg) {
     jclass StringClass = env->FindClass("java/lang/String");
     jclass ArrayListClass = env->FindClass("java/util/ArrayList");
 
-    jmethodID nbestInit = env->GetMethodID(NbestDecoderMessageClass, "<init>", "(Ljava/lang/String;JLjava/util/ArrayList;)V");
+    jmethodID nbestInit = env->GetMethodID(NbestDecoderMessageClass, "<init>", "(JLjava/util/ArrayList;)V");
     jmethodID nbestEntryInit = env->GetMethodID(NbestEntryClass, "<init>", "([I[J[Ljava/lang/String;[F)V");
     jmethodID arrayListInit = env->GetMethodID(ArrayListClass, "<init>", "()V");
     jmethodID arrayListAdd = env->GetMethodID(ArrayListClass, "add", "(Ljava/lang/Object;)Z");
 
-    std::string tag = msg.getTag();
     jlong time = msg.getTime();
 
     env->PushLocalFrame(3); // jTag, jArrayListObject, retObj
-    jstring jTag = env->NewStringUTF(tag.c_str());
     jobject jArrayListObject = env->NewObject(ArrayListClass, arrayListInit);
 
-    for (int entryIdx = 0; entryIdx < msg.mWords.size(); entryIdx++) {
-        const std::vector<std::string>& text = msg.mText[entryIdx];
-        const std::vector<uint64_t>& words = msg.mWords[entryIdx];
-        const std::vector<uint64_t>& alignment = msg.mAlignment[entryIdx];
-        const std::vector<float>& confidences = msg.mConfidences[entryIdx];
+    for (int entryIdx = 0; entryIdx < msg.mEntries.size(); entryIdx++) {
+        const NbestEntry& entry = msg.mEntries[entryIdx];
+        const auto& text = entry.mText;
+        const auto& words = entry.mWords;
+        const auto& alignment = entry.mAlignment;
+        const auto& confidences = entry.mConfidences;
 
         env->PushLocalFrame(4); // jWordsArray, jAlignmentArray, jConfidencesArray, jTextArray
 
@@ -679,7 +671,7 @@ jobject NbestToJniHelper(JNIEnv* env, const NbestDecoderMessage& msg) {
         env->PopLocalFrame(NULL);
     }
 
-    jobject retObj = env->NewObject(NbestDecoderMessageClass, nbestInit, jTag, time, jArrayListObject);
+    jobject retObj = env->NewObject(NbestDecoderMessageClass, nbestInit, time, jArrayListObject);
     return env->PopLocalFrame(retObj);
 }
 
@@ -694,7 +686,7 @@ jobject NbestDecoderMessage::toJNI(JNIEnv* env) {
     return env->PopLocalFrame(mainObject);
 };
 
-void GetNbestEntryVals(JNIEnv* env, jobject jEntryObj, std::vector<std::string>& text, std::vector<uint64_t>& words, std::vector<uint64_t>& alignment, std::vector<float>& confidences) {
+void JNIGetNbestEntry(JNIEnv* env, jobject jEntryObj, NbestEntry& entry) {
     jclass NbestEntryClass = env->FindClass("com/bbn/godec/NbestEntry");
 
     // Words
@@ -702,14 +694,14 @@ void GetNbestEntryVals(JNIEnv* env, jobject jEntryObj, std::vector<std::string>&
     jintArray jWordsArray = (jintArray)env->GetObjectField(jEntryObj, jWordsFieldId);
     int jWordsArraySize = env->GetArrayLength(jWordsArray);
     jint* jWordsArrayInts = env->GetIntArrayElements(jWordsArray, 0);
-    for (int idx = 0; idx < jWordsArraySize; idx++) words.push_back(jWordsArrayInts[idx]);
+    for (int idx = 0; idx < jWordsArraySize; idx++) entry.mWords.push_back(jWordsArrayInts[idx]);
     env->ReleaseIntArrayElements(jWordsArray, jWordsArrayInts, 0);
 
     // Alignment
     jfieldID jAlignmentFieldId = env->GetFieldID(NbestEntryClass, "alignment", "[J");
     jlongArray jAlignmentArray = (jlongArray)env->GetObjectField(jEntryObj, jAlignmentFieldId);
     jlong* jAlignmentArrayInts = env->GetLongArrayElements(jAlignmentArray, 0);
-    for (int idx = 0; idx < jWordsArraySize; idx++) alignment.push_back(jAlignmentArrayInts[idx]);
+    for (int idx = 0; idx < jWordsArraySize; idx++) entry.mAlignment.push_back(jAlignmentArrayInts[idx]);
     env->ReleaseLongArrayElements(jAlignmentArray, jAlignmentArrayInts, 0);
 
     // Text
@@ -718,7 +710,7 @@ void GetNbestEntryVals(JNIEnv* env, jobject jEntryObj, std::vector<std::string>&
     for (int idx = 0; idx < jWordsArraySize; idx++) {
         jstring jTextArrayString = (jstring)env->GetObjectArrayElement(jTextArray, idx);
         const char* textChars = env->GetStringUTFChars(jTextArrayString, 0);
-        text.push_back(textChars);
+        entry.mText.push_back(textChars);
         env->ReleaseStringUTFChars(jTextArrayString, textChars);
     }
 
@@ -726,23 +718,19 @@ void GetNbestEntryVals(JNIEnv* env, jobject jEntryObj, std::vector<std::string>&
     jfieldID jConfidencesFieldId = env->GetFieldID(NbestEntryClass, "wordConfidences", "[F");
     jfloatArray jConfidencesArray = (jfloatArray)env->GetObjectField(jEntryObj, jConfidencesFieldId);
     jfloat* jConfidencesArrayFloats = env->GetFloatArrayElements(jConfidencesArray, 0);
-    for (int idx = 0; idx < jWordsArraySize; idx++) confidences.push_back(jConfidencesArrayFloats[idx]);
+    for (int idx = 0; idx < jWordsArraySize; idx++) entry.mConfidences.push_back(jConfidencesArrayFloats[idx]);
     env->ReleaseFloatArrayElements(jConfidencesArray, jConfidencesArrayFloats, 0);
 }
 
 DecoderMessage_ptr NbestDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
-    std::string tag;
     uint64_t time;
     std::string descriptorString;
-    JNIGetDecoderMessageVals(env, jMsg, tag, time, descriptorString);
+    JNIGetDecoderMessageVals(env, jMsg, time, descriptorString);
 
     jclass NbestDecoderMessageClass = env->FindClass("com/bbn/godec/NbestDecoderMessage");
     jclass ArrayListClass = env->FindClass("java/util/ArrayList");
 
-    std::vector<std::vector<std::string>> textV;
-    std::vector<std::vector<uint64_t>> wordsV;
-    std::vector<std::vector<uint64_t>> alignmentV;
-    std::vector<std::vector<float>> confidencesV;
+    std::vector<NbestEntry> entries;
 
     jfieldID jEntriesFieldId = env->GetFieldID(NbestDecoderMessageClass, "mEntries", "Ljava/util/ArrayList;");
     jobject jEntriesObj = (jobject)env->GetObjectField(jMsg, jEntriesFieldId);
@@ -751,29 +739,67 @@ DecoderMessage_ptr NbestDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
     jint numEntries = env->CallIntMethod(jEntriesObj, jArraySizeMethodId);
     for (int entryIdx = 0; entryIdx < numEntries; entryIdx++) {
         jobject jEntryObj = env->CallObjectMethod(jEntriesObj, jArrayGetMethodId, entryIdx);
-        std::vector<std::string> text;
-        std::vector<uint64_t> words;
-        std::vector<uint64_t> alignment;
-        std::vector<float> confidences;
-        GetNbestEntryVals(env, jEntryObj, text, words, alignment, confidences);
-        textV.push_back(text);
-        wordsV.push_back(words);
-        alignmentV.push_back(alignment);
-        confidencesV.push_back(confidences);
+        NbestEntry entry;
+        JNIGetNbestEntry(env, jEntryObj, entry);
+        entries.push_back(entry);
     }
-    DecoderMessage_ptr outMsg = NbestDecoderMessage::create(time, textV, wordsV, alignmentV, confidencesV);
+    DecoderMessage_ptr outMsg = NbestDecoderMessage::create(time, entries);
     (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
     return outMsg;
 }
 
 #ifndef ANDROID
+void PythonGetNbestEntry(PyObject* pEntry, NbestEntry& entry) {
+
+    // Words
+    PyObject* pWords = PyObject_GetAttr(pEntry, PyUnicode_FromString("words"));
+    if (pWords == nullptr) GODEC_ERR << "Python message dict does not contain 'words' entry!";
+    int wordsArraySize = PyList_Size(pWords);
+    for (int idx = 0; idx < wordsArraySize; idx++) entry.mWords.push_back(PyLong_AsLong(PyList_GetItem(pWords, idx)));
+
+    // Alignment
+    PyObject* pAlignment = PyObject_GetAttr(pEntry, PyUnicode_FromString("alignment"));
+    if (pAlignment == nullptr) GODEC_ERR << "Python message dict does not contain 'alignment' entry!";
+    for (int idx = 0; idx < wordsArraySize; idx++) entry.mAlignment.push_back(PyLong_AsLong(PyList_GetItem(pAlignment, idx)));
+
+    // Text
+    PyObject* pText = PyObject_GetAttr(pEntry, PyUnicode_FromString("text"));
+    if (pText == nullptr) GODEC_ERR << "Python message dict does not contain 'text' entry!";
+    for (int idx = 0; idx < wordsArraySize; idx++) {
+        entry.mText.push_back(PyUnicode_AsUTF8(PyList_GetItem(pText, idx)));
+    }
+
+    // Confidences
+    PyObject* pConfidences = PyObject_GetAttr(pEntry, PyUnicode_FromString("confidences"));
+    if (pConfidences == nullptr) GODEC_ERR << "Python message dict does not contain 'confidences' entry!";
+    for (int idx = 0; idx < wordsArraySize; idx++) entry.mConfidences.push_back(PyFloat_AsDouble(PyList_GetItem(pConfidences, idx)));
+}
+
 PyObject* NbestDecoderMessage::toPython() {
     GODEC_ERR << "NbestDecoderMessage::toPython not implemented yet";
     return nullptr;
 }
+
 DecoderMessage_ptr NbestDecoderMessage::fromPython(PyObject* pMsg) {
-    GODEC_ERR << "NbestDecoderMessage::fromPython not implemented yet";
-    return DecoderMessage_ptr();
+    GodecMessages_init_numpy();
+    uint64_t time;
+    std::string descriptorString;
+    PythonGetDecoderMessageVals(pMsg, time, descriptorString);
+
+    std::vector<NbestEntry> entries;
+
+    PyObject* pEntries = PyObject_GetAttr(pMsg, PyUnicode_FromString("entries"));
+    if (pEntries == nullptr) GODEC_ERR << "Python message dict does not contain 'entries' entry!";
+    int numEntries = PyList_Size(pEntries);
+    for (int entryIdx = 0; entryIdx < numEntries; entryIdx++) {
+        PyObject* pEntry = PyList_GetItem(pEntries, entryIdx);
+        NbestEntry entry;
+        PythonGetNbestEntry(pEntry, entry);
+        entries.push_back(entry);
+    }
+    DecoderMessage_ptr outMsg = NbestDecoderMessage::create(time, entries);
+    (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    return outMsg;
 }
 #endif
 
@@ -852,13 +878,11 @@ jobject ConversationStateDecoderMessage::toJNI(JNIEnv* env) {
     env->PushLocalFrame(4); // jTag, jUttId, jConvoId, jConvoMsg
     jclass ConvoDecoderMessageClass = env->FindClass("com/bbn/godec/ConversationStateDecoderMessage");
     jclass DecoderMessageClass = env->FindClass("com/bbn/godec/DecoderMessage");
-    jmethodID jConvoMsgInit = env->GetMethodID(ConvoDecoderMessageClass, "<init>", "(Ljava/lang/String;JLjava/lang/String;ZLjava/lang/String;Z)V");
-    std::string tag = getTag();
-    jstring jTag = env->NewStringUTF(tag.c_str());
+    jmethodID jConvoMsgInit = env->GetMethodID(ConvoDecoderMessageClass, "<init>", "(JLjava/lang/String;ZLjava/lang/String;Z)V");
     jstring jUttId = env->NewStringUTF(mUtteranceId.c_str());
     jstring jConvoId = env->NewStringUTF(mConvoId.c_str());
     jlong jTime = getTime();
-    jobject jConvoMsg = env->NewObject(ConvoDecoderMessageClass, jConvoMsgInit, jTag, jTime, jUttId, mLastChunkInUtt, jConvoId, mLastChunkInConvo);
+    jobject jConvoMsg = env->NewObject(ConvoDecoderMessageClass, jConvoMsgInit, jTime, jUttId, mLastChunkInUtt, jConvoId, mLastChunkInConvo);
 
     jstring jDescriptor = env->NewStringUTF(getFullDescriptorString().c_str());
     jmethodID jSetFullDescriptor = env->GetMethodID(DecoderMessageClass, "setFullDescriptorString", "(Ljava/lang/String;)V");
@@ -867,10 +891,9 @@ jobject ConversationStateDecoderMessage::toJNI(JNIEnv* env) {
 };
 
 DecoderMessage_ptr ConversationStateDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
-    std::string tag;
     uint64_t time;
     std::string descriptorString;
-    JNIGetDecoderMessageVals(env, jMsg, tag, time, descriptorString);
+    JNIGetDecoderMessageVals(env, jMsg, time, descriptorString);
 
     jclass ConversationStateDecoderMessageClass = env->FindClass("com/bbn/godec/ConversationStateDecoderMessage");
     jfieldID jUttFieldId = env->GetFieldID(ConversationStateDecoderMessageClass, "mUtteranceId", "Ljava/lang/String;");
@@ -900,38 +923,37 @@ DecoderMessage_ptr ConversationStateDecoderMessage::fromJNI(JNIEnv* env, jobject
 #ifndef ANDROID
 PyObject* ConversationStateDecoderMessage::toPython() {
     GodecMessages_init_numpy();
-    PyObject* dict = PyDict_New();
+    PyObject *pArgList = Py_BuildValue("Lsisi", getTime(), mUtteranceId.c_str(), (int)mLastChunkInUtt, mConvoId.c_str(), (int)mLastChunkInConvo);
+    if (pArgList == NULL) GODEC_ERR << "Could not create arglist";
+    PyObject* pModuleObj = PyImport_ImportModule("godec");
+    if (pModuleObj == NULL) GODEC_ERR << "Could not import godec module";
+    PyObject* pClassObj = PyObject_GetAttrString(pModuleObj, "conversation_state_decoder_message");
+    if (pClassObj == NULL) GODEC_ERR << "Could not find features_decoder_message";
+    PyObject *pObj = PyObject_CallObject(pClassObj, pArgList);
+    if (pObj == NULL) GODEC_ERR << "Could not instantiate features_decoder_message";
 
-    PyDict_SetItemString(dict, "type", PyUnicode_FromString("ConversationStateDecoderMessage"));
-    PyDict_SetItemString(dict, "tag", PyUnicode_FromString(getTag().c_str()));
-    PyDict_SetItemString(dict, "utterance_id", PyUnicode_FromString(mUtteranceId.c_str()));
-    PyDict_SetItemString(dict, "convo_id", PyUnicode_FromString(mConvoId.c_str()));
-    PyDict_SetItemString(dict, "last_chunk_in_utt", mLastChunkInUtt ? Py_True : Py_False);
-    PyDict_SetItemString(dict, "last_chunk_in_convo", mLastChunkInConvo ? Py_True : Py_False);
-    PyDict_SetItemString(dict, "time", PyLong_FromLong(getTime()));
-    PyDict_SetItemString(dict, "descriptor", PyUnicode_FromString(getFullDescriptorString().c_str()));
-    return dict;
+    PyObject_SetAttrString(pObj, "descriptor",  PyUnicode_FromString(getFullDescriptorString().c_str()));
+    return pObj;
 }
 DecoderMessage_ptr ConversationStateDecoderMessage::fromPython(PyObject* pMsg) {
     GodecMessages_init_numpy();
-    std::string tag;
     uint64_t time;
     std::string descriptorString;
-    PythonGetDecoderMessageVals(pMsg, tag, time, descriptorString);
+    PythonGetDecoderMessageVals(pMsg, time, descriptorString);
 
-    PyObject* pUttId = PyDict_GetItemString(pMsg,"utterance_id");
+    PyObject* pUttId = PyObject_GetAttrString(pMsg,"utterance_id");
     if (pUttId == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'utterance_id'!";
     std::string uttId = PyUnicode_AsUTF8(pUttId);
 
-    PyObject* pConvoId = PyDict_GetItemString(pMsg,"convo_id");
+    PyObject* pConvoId = PyObject_GetAttrString(pMsg,"convo_id");
     if (pConvoId == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'convo_id'!";
     std::string convoId = PyUnicode_AsUTF8(pConvoId);
 
-    PyObject* pLastChunkInUtt = PyDict_GetItemString(pMsg,"last_chunk_in_utt");
+    PyObject* pLastChunkInUtt = PyObject_GetAttrString(pMsg,"last_chunk_in_utt");
     if (pLastChunkInUtt == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'last_chunk_in_utt'!";
     bool lastChunkInUtt = pLastChunkInUtt == Py_True ? true : false;
 
-    PyObject* pLastChunkInConvo = PyDict_GetItemString(pMsg,"last_chunk_in_convo");
+    PyObject* pLastChunkInConvo = PyObject_GetAttrString(pMsg,"last_chunk_in_convo");
     if (pLastChunkInConvo == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'last_chunk_in_convo'!";
     bool lastChunkInConvo = pLastChunkInConvo  == Py_False ? true : false;
 
@@ -984,14 +1006,12 @@ void BinaryDecoderMessage::shiftInTime(int64_t deltaT) {
 jobject BinaryDecoderMessage::toJNI(JNIEnv* env) {
     jclass BinaryDecoderMessageClass = env->FindClass("com/bbn/godec/BinaryDecoderMessage");
     jclass DecoderMessageClass = env->FindClass("com/bbn/godec/DecoderMessage");
-    jmethodID jBinaryMsgInit = env->GetMethodID(BinaryDecoderMessageClass, "<init>", "(Ljava/lang/String;J[BLjava/lang/String;)V");
-    std::string tag = getTag();
-    jstring jTag = env->NewStringUTF(tag.c_str());
+    jmethodID jBinaryMsgInit = env->GetMethodID(BinaryDecoderMessageClass, "<init>", "(J[BLjava/lang/String;)V");
     jlong jTime = getTime();
     jbyteArray jDataArrayObj = env->NewByteArray((jsize)mData.size());
     env->SetByteArrayRegion(jDataArrayObj, 0, (jsize)mData.size(), (const jbyte*)mData.data());
     jstring jFormatString = env->NewStringUTF(mFormat.c_str());
-    jobject jAudioMsg = env->NewObject(BinaryDecoderMessageClass, jBinaryMsgInit, jTag, jTime, jDataArrayObj, jFormatString);
+    jobject jAudioMsg = env->NewObject(BinaryDecoderMessageClass, jBinaryMsgInit, jTime, jDataArrayObj, jFormatString);
 
     jstring jDescriptor = env->NewStringUTF(getFullDescriptorString().c_str());
     jmethodID jSetFullDescriptor = env->GetMethodID(DecoderMessageClass, "setFullDescriptorString", "(Ljava/lang/String;)V");
@@ -1000,10 +1020,9 @@ jobject BinaryDecoderMessage::toJNI(JNIEnv* env) {
 };
 
 DecoderMessage_ptr BinaryDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
-    std::string tag;
     uint64_t time;
     std::string descriptorString;
-    JNIGetDecoderMessageVals(env, jMsg, tag, time, descriptorString);
+    JNIGetDecoderMessageVals(env, jMsg, time, descriptorString);
 
     jclass BinaryDecoderMessageClass = env->FindClass("com/bbn/godec/BinaryDecoderMessage");
     jfieldID jDataFieldId = env->GetFieldID(BinaryDecoderMessageClass, "mData", "[B");
@@ -1028,12 +1047,45 @@ DecoderMessage_ptr BinaryDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
 
 #ifndef ANDROID
 PyObject* BinaryDecoderMessage::toPython() {
-    GODEC_ERR << "BinaryDecoderMessage::toPython not implemented yet";
-    return nullptr;
+    GodecMessages_init_numpy();
+
+    npy_intp dataDims[1] {(npy_intp)mData.size()};
+    PyObject* pData = PyArray_SimpleNewFromData(1, dataDims, NPY_UINT8, &mData[0]);
+    if (pData == NULL) GODEC_ERR << "Could not allocate feature timestamps memory";
+
+    PyObject *pArgList = Py_BuildValue("lOs", getTime(), pData, mFormat.c_str());
+    if (pArgList == NULL) GODEC_ERR << "Could not create arglist";
+    PyObject* pModuleObj = PyImport_ImportModule("godec");
+    if (pModuleObj == NULL) GODEC_ERR << "Could not import godec module";
+    PyObject* pClassObj = PyObject_GetAttrString(pModuleObj, "binary_decoder_message");
+    if (pClassObj == NULL) GODEC_ERR << "Could not find binary_decoder_message";
+    PyObject *pObj = PyObject_CallObject(pClassObj, pArgList);
+    if (pObj == NULL) GODEC_ERR << "Could not instantiate binary_decoder_message";
+
+    PyObject_SetAttrString(pObj, "descriptor",  PyUnicode_FromString(getFullDescriptorString().c_str()));
+    return pObj;
 }
 DecoderMessage_ptr BinaryDecoderMessage::fromPython(PyObject* pMsg) {
-    GODEC_ERR << "BinaryDecoderMessage::fromPython not implemented yet";
-    return DecoderMessage_ptr();
+    uint64_t time;
+    std::string descriptorString;
+    PythonGetDecoderMessageVals(pMsg, time, descriptorString);
+
+    // timestamps
+    PyArrayObject* pData = (PyArrayObject*)PyObject_GetAttrString(pMsg,"data");
+    if (pData == NULL) GODEC_ERR << "Incoming Python message dict does not contain field 'data'!";
+    if (PyArray_NDIM(pData) != 1) GODEC_ERR << "Incoming Python message, 'data' element is not a one-dimensional numpy array!";
+    std::vector<unsigned char> data(PyArray_DIM(pData,0));
+    for(int idx = 0; idx < data.size(); idx++) {
+        data[idx] = *((char*)PyArray_GETPTR1(pData, idx));
+    }
+
+    PyObject* pFormat = PyObject_GetAttrString(pMsg, "format");
+    if (pFormat == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'format'!";
+    std::string format = PyUnicode_AsUTF8(pFormat);
+
+    DecoderMessage_ptr outMsg = BinaryDecoderMessage::create(time, data, format);
+    (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    return outMsg;
 }
 #endif
 
@@ -1050,13 +1102,11 @@ DecoderMessage_ptr JsonDecoderMessage::clone() const {
 
 jobject JsonDecoderMessage::toJNI(JNIEnv *env) {
     jclass JsonDecoderMessageClass = env->FindClass("com/bbn/godec/JsonDecoderMessage");
-    jmethodID msgInit = env->GetMethodID(JsonDecoderMessageClass, "<init>", "(Ljava/lang/String;JLjava/lang/String;)V");
-    std::string tag = getTag();
+    jmethodID msgInit = env->GetMethodID(JsonDecoderMessageClass, "<init>", "(JLjava/lang/String;)V");
     jlong time = getTime();
     env->PushLocalFrame(3); // jTag, JJsonStr, retObj
-    jstring jTag = env->NewStringUTF(tag.c_str());
     jstring jJsonString = env->NewStringUTF(mJson.dump().c_str());
-    jobject retObj = env->NewObject(JsonDecoderMessageClass, msgInit, jTag, time, jJsonString);
+    jobject retObj = env->NewObject(JsonDecoderMessageClass, msgInit, time, jJsonString);
     return env->PopLocalFrame(retObj);
 }
 
@@ -1068,10 +1118,9 @@ DecoderMessage_ptr JsonDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
     std::string jsonString = jsonChars;
     env->ReleaseStringUTFChars(jJsonString, jsonChars);
 
-    std::string tag;
     uint64_t time;
     std::string descriptorString;
-    JNIGetDecoderMessageVals(env, jMsg, tag, time, descriptorString);
+    JNIGetDecoderMessageVals(env, jMsg, time, descriptorString);
     json j = json::parse(jsonString);
     return JsonDecoderMessage::create(time, j);
 }
@@ -1079,22 +1128,25 @@ DecoderMessage_ptr JsonDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
 #ifndef ANDROID
 PyObject* JsonDecoderMessage::toPython() {
     GodecMessages_init_numpy();
-    PyObject* dict = PyDict_New();
 
-    PyDict_SetItemString(dict, "type", PyUnicode_FromString("JsonDecoderMessage"));
-    PyDict_SetItemString(dict, "tag", PyUnicode_FromString(getTag().c_str()));
-    PyDict_SetItemString(dict, "time", PyLong_FromLong(getTime()));
-    PyDict_SetItemString(dict, "descriptor", PyUnicode_FromString(getFullDescriptorString().c_str()));
-    PyDict_SetItemString(dict, "json", PyUnicode_FromString(mJson.dump().c_str()));
-    return dict;
+    PyObject *pArgList = Py_BuildValue("ls", getTime(), PyUnicode_FromString(mJson.dump().c_str()));
+    if (pArgList == NULL) GODEC_ERR << "Could not create arglist";
+    PyObject* pModuleObj = PyImport_ImportModule("godec");
+    if (pModuleObj == NULL) GODEC_ERR << "Could not import godec module";
+    PyObject* pClassObj = PyObject_GetAttrString(pModuleObj, "json_decoder_message");
+    if (pClassObj == NULL) GODEC_ERR << "Could not find json_decoder_message";
+    PyObject *pObj = PyObject_CallObject(pClassObj, pArgList);
+    if (pObj == NULL) GODEC_ERR << "Could not instantiate json_decoder_message";
+
+    PyObject_SetAttrString(pObj, "descriptor",  PyUnicode_FromString(getFullDescriptorString().c_str()));
+    return pObj;
 }
 
 DecoderMessage_ptr JsonDecoderMessage::fromPython(PyObject* pMsg) {
     GodecMessages_init_numpy();
-    std::string tag;
     uint64_t time;
     std::string descriptorString;
-    PythonGetDecoderMessageVals(pMsg, tag, time, descriptorString);
+    PythonGetDecoderMessageVals(pMsg, time, descriptorString);
 
     PyObject* pJson = PyDict_GetItemString(pMsg,"json");
     if (pJson == nullptr) GODEC_ERR << "JsonDecoderMessage::fromPython: Passed in dict does not contain 'json' field!";

@@ -132,14 +132,12 @@ public class SimpleASR {
     String formatString = "base_format=PCM;sample_width="+(audioFormat.getFrameSize()*8)+";sample_rate="+audioFormat.getSampleRate()+";num_channels="+audioFormat.getChannels();
     mTotalNumSamples += audioData.length;
     DecoderMessage audioMsg = new BinaryDecoderMessage(
-        "dummy", 
         mTotalNumSamples-1,
         audioData,
         formatString);
     mEngine.PushMessage("raw_audio", audioMsg);
 
     DecoderMessage convMsg = new ConversationStateDecoderMessage(
-        "dummy",
         mTotalNumSamples-1, // time stamp
         "utt_id", // utterance identifier
         false, // last chunk in utt?
@@ -161,11 +159,10 @@ public class SimpleASR {
         byte[] trimmedArray = new byte[read];
         System.arraycopy(byteData, 0, trimmedArray, 0, read);
         mTotalNumSamples += read/2;
-        DecoderMessage audioMsg = new BinaryDecoderMessage("dummy", mTotalNumSamples, trimmedArray, formatString);
+        DecoderMessage audioMsg = new BinaryDecoderMessage(mTotalNumSamples, trimmedArray, formatString);
         mEngine.PushMessage("raw_audio", audioMsg);
 
         DecoderMessage convMsg = new ConversationStateDecoderMessage(
-            "dummy",
             mTotalNumSamples, // time stamp
             utteranceID, // utterance identifier
             lastChunkInUtt, // last chunk in utt?

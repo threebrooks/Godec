@@ -9,9 +9,9 @@
     "type": "FileFeeder",
     "control_type": "single_on_startup",
     "source_type": "analist",
-    "input_file": "data/resample.analist",
+    "input_file": "resample.analist",
     "feed_realtime_factor": "10000",
-    "wave_dir": "data",
+    "wave_dir": ".",
     "wave_extension": "wav",
     "audio_chunk_size": 800000,
     "time_upsample_factor": "1",
@@ -51,7 +51,7 @@
     "control_type": "single_on_startup",
     "input_type": "audio",
     "sample_depth": "16",
-    "output_file_prefix": "data/_resampled_",
+    "output_file_prefix": "_resampled_",
     "inputs": { 
       "conversation_state": "convstate",
       "input_stream": "preproc_audio"

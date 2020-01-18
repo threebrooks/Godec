@@ -56,8 +56,8 @@ void RouterComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
     std::vector<int64_t> newRoutingIndices;
     if (mMode == Mode::SadNbest) {
         auto nbestRoutingMsg = msgBlock.get<NbestDecoderMessage>(SlotRoutingStream);
-        std::copy(nbestRoutingMsg->mWords[0].begin(), nbestRoutingMsg->mWords[0].end(), std::back_inserter(newRoutingIndices));
-        std::copy(nbestRoutingMsg->mAlignment[0].begin(), nbestRoutingMsg->mAlignment[0].end(), std::back_inserter(mAccumAlignment));
+        std::copy(nbestRoutingMsg->mEntries[0].mWords.begin(), nbestRoutingMsg->mEntries[0].mWords.end(), std::back_inserter(newRoutingIndices));
+        std::copy(nbestRoutingMsg->mEntries[0].mAlignment.begin(), nbestRoutingMsg->mEntries[0].mAlignment.end(), std::back_inserter(mAccumAlignment));
     } else {
         newRoutingIndices.push_back(mRRCurrentRoute);
         mAccumAlignment.push_back(convStateMsg->getTime());

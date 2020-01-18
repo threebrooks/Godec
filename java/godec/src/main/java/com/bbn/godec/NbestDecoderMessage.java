@@ -13,8 +13,8 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 
 public class NbestDecoderMessage extends DecoderMessage {
-  public NbestDecoderMessage(String tag, long time, ArrayList<NbestEntry> entries) {
-    super(tag,time);
+  public NbestDecoderMessage(long time, ArrayList<NbestEntry> entries) {
+    super(time);
     mEntries = entries;
   }
 

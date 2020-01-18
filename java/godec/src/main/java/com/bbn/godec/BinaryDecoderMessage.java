@@ -13,8 +13,8 @@ import com.google.gson.JsonObject;
 
 
 public class BinaryDecoderMessage extends DecoderMessage {
-	public BinaryDecoderMessage(String tag, long time, byte[] data, String format) {
-		super(tag, time);
+	public BinaryDecoderMessage(long time, byte[] data, String format) {
+		super(time);
 		mData = new byte[data.length];
 		System.arraycopy(data,0,mData,0, data.length);
 		mFormat = format;

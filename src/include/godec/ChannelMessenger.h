@@ -57,9 +57,9 @@ class DecoderMessage {
     // static DecoderMessage_ptr fromPython(PyObject* pMsg) = 0;
 
     // Static functions for extracting values from JNI and Python
-    static void JNIGetDecoderMessageVals(JNIEnv* env, jobject& jMsg, std::string& tag, uint64_t& time, std::string& descriptor);
+    static void JNIGetDecoderMessageVals(JNIEnv* env, jobject& jMsg, uint64_t& time, std::string& descriptor);
 #ifndef ANDROID
-    static void PythonGetDecoderMessageVals(PyObject* pMsg, std::string& tag, uint64_t& time, std::string& descriptor);
+    static void PythonGetDecoderMessageVals(PyObject* pMsg, uint64_t& time, std::string& descriptor);
 #endif
 
     // mergeWith gets called when new content arrived at a component, and the new message gets "packed" onto the existing

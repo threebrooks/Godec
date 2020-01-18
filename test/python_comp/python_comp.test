@@ -13,8 +13,8 @@ PYTHON=$PYTHON_HOME/bin/python3
 if [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
   PYTHON_HOME_CYGWIN=$(cygpath -m $PYTHON_HOME)
   PYTHON=$PYTHON_HOME_CYGWIN/python.exe 
-  OVERRIDE="-x python.python_executable=$PYTHON"
 fi
+OVERRIDE="-x python.python_executable=$PYTHON -x python.python_path=$PYTHONPATH"
 
 godec -q $OVERRIDE python_test.json
 $PYTHON python_test_compare_matrix.py

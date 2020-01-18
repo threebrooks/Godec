@@ -38,7 +38,7 @@
     "type": "Python",
     "python_executable": "will_be_set_from_the_outside",
     "script_file_name": "python_test",
-    "python_path": "python_dummy_module",
+    "python_path": "",
     "class_name": "PythonTest",
     "class_constructor_param": "2.0", // This test multiplies features by 2.0
     "expected_inputs": "features",

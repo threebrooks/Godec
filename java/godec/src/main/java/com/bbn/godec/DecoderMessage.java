@@ -8,12 +8,10 @@ import com.google.gson.JsonObject;
 
 /* This class needs to exactly mirror ChannelMessenger.h */
 public abstract class DecoderMessage {
-  DecoderMessage(String tag, long time) {
+  DecoderMessage(long time) {
     mTime = time;
-    mTag = tag;
   }
   public long mTime;
-  public String mTag;
   public abstract byte[] describeThyself();
   public abstract JsonObject toJson();
 
@@ -53,12 +51,10 @@ public abstract class DecoderMessage {
 
   void JsonSetBaseClassVals(JsonObject jsonObject) {
     jsonObject.addProperty("time", mTime);
-    jsonObject.addProperty("tag", mTag);
     jsonObject.addProperty("descriptors", getFullDescriptorString());
   }
 
   void JsonGetBaseClassVals(Map<String,Object> map) {
-    mTag = (String)map.get("tag");
     mTime = ((Number)map.get("time")).longValue();
     if (map.containsKey("descriptors")) setFullDescriptorString((String)map.get("descriptors"));
   }

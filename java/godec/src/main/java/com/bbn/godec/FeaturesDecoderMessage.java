@@ -12,8 +12,8 @@ public class FeaturesDecoderMessage extends DecoderMessage {
   public String mFeatureNames = null;
   public Matrix mFeatures = null;
   public long[] mFeatureTimestamps = null;
-  public FeaturesDecoderMessage(String tag, long time, String utteranceId, Matrix features, long[] featureTimestamps, String featureNames) {
-    super(tag, time);
+  public FeaturesDecoderMessage(long time, String utteranceId, Matrix features, long[] featureTimestamps, String featureNames) {
+    super(time);
     mUtteranceId = utteranceId;
     mFeatures = features;
     mFeatureNames = featureNames;

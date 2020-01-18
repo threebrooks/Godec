@@ -138,17 +138,21 @@ class MatrixDecoderMessage : public DecoderMessage {
     }
 };
 
+struct NbestEntry {
+    std::vector<uint64_t> mWords;
+    std::vector<uint64_t> mAlignment;
+    std::vector<std::string> mText;
+    std::vector<float> mConfidences;
+};
+
 class NbestDecoderMessage : public DecoderMessage {
   public:
-    std::vector<std::vector<uint64_t>> mWords;
-    std::vector<std::vector<uint64_t>> mAlignment;
-    std::vector<std::vector<std::string>> mText;
-    std::vector<std::vector<float>> mConfidences;
+    std::vector<NbestEntry> mEntries;
 
     std::string describeThyself() const;
     DecoderMessage_ptr clone() const;
 
-    static DecoderMessage_ptr create(uint64_t time, std::vector<std::vector<std::string>> text, std::vector<std::vector<uint64_t>> words, std::vector<std::vector<uint64_t>> alignment, std::vector<std::vector<float>> confidences);
+    static DecoderMessage_ptr create(uint64_t time, std::vector<NbestEntry> entries);
     bool mergeWith(DecoderMessage_ptr msg, DecoderMessage_ptr &remainingMsg, bool verbose);
     bool canSliceAt(uint64_t sliceTime, std::vector<DecoderMessage_ptr>& msgList, uint64_t streamStartOffset, bool verbose);
     bool sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose);
@@ -168,10 +172,7 @@ class NbestDecoderMessage : public DecoderMessage {
     template<typename Archive>
     void serialize(Archive & ar, const unsigned int version)  {
         ar & boost::serialization::base_object<DecoderMessage>(*this);
-        ar & mWords;
-        ar & mAlignment;
-        ar & mText;
-        ar & mConfidences;
+        ar & mEntries;
     }
 };
 

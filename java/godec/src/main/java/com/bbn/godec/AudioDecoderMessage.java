@@ -6,8 +6,8 @@ import com.google.gson.JsonObject;
 
 
 public class AudioDecoderMessage extends DecoderMessage {
-  public AudioDecoderMessage(String tag, long time, Vector audioVec, float sampleRate, float ticksPerSample) {
-    super(tag, time);
+  public AudioDecoderMessage(long time, Vector audioVec, float sampleRate, float ticksPerSample) {
+    super(time);
     if (audioVec.size() == 0)
       throw new IllegalArgumentException("Can not create AudioDecoderMessage from empty data vector.");
     mAudio = audioVec;

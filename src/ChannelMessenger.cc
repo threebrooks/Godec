@@ -46,14 +46,9 @@ std::string DecoderMessage::describeThyself() const {
     return ss.str();
 }
 
-void DecoderMessage::JNIGetDecoderMessageVals(JNIEnv* env, jobject& jMsg, std::string& tag, uint64_t& time, std::string& descriptor) {
+void DecoderMessage::JNIGetDecoderMessageVals(JNIEnv* env, jobject& jMsg, uint64_t& time, std::string& descriptor) {
     jclass DecoderMessageClass = env->FindClass("com/bbn/godec/DecoderMessage");
-    jfieldID jTagId = env->GetFieldID(DecoderMessageClass, "mTag", "Ljava/lang/String;");
     jfieldID jTimeId = env->GetFieldID(DecoderMessageClass, "mTime", "J");
-    jstring jTagObj = (jstring)env->GetObjectField(jMsg, jTagId);
-    const char* tagChars = env->GetStringUTFChars(jTagObj, 0);
-    tag = tagChars;
-    env->ReleaseStringUTFChars(jTagObj, tagChars);
     time = env->GetLongField(jMsg, jTimeId);
 
     jmethodID jGetDescriptor = env->GetMethodID(DecoderMessageClass, "getFullDescriptorString", "()Ljava/lang/String;");
@@ -64,14 +59,11 @@ void DecoderMessage::JNIGetDecoderMessageVals(JNIEnv* env, jobject& jMsg, std::s
 }
 
 #ifndef ANDROID
-void DecoderMessage::PythonGetDecoderMessageVals(PyObject* pMsg, std::string& tag, uint64_t& time, std::string& descriptor) {
-    PyObject* pTag = PyDict_GetItemString(pMsg,"tag");
-    if (pTag == nullptr) GODEC_ERR << "Python message dict does not contain 'tag' entry!";
-    tag = PyUnicode_AsUTF8(pTag);
-    PyObject* pTime = PyDict_GetItemString(pMsg,"time");
+void DecoderMessage::PythonGetDecoderMessageVals(PyObject* pMsg, uint64_t& time, std::string& descriptor) {
+    PyObject* pTime = PyObject_GetAttr(pMsg, PyUnicode_FromString("time"));
     if (pTime == nullptr) GODEC_ERR << "Python message dict does not contain 'time' entry!";
     time = PyLong_AsLong(pTime);
-    PyObject* pDesc = PyDict_GetItemString(pMsg,"descriptor");
+    PyObject* pDesc = PyObject_GetAttr(pMsg, PyUnicode_FromString("descriptor"));
     if (pDesc == nullptr) GODEC_ERR << "Python message dict does not contain 'descriptor' entry!";
     descriptor = PyUnicode_AsUTF8(pDesc);
 }

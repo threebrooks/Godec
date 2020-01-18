@@ -34,6 +34,12 @@ Look at `test/python_test.json` for an example.
 int PythonComponent_init_numpy() {
     import_array();
 }
+
+std::string GetPyErr() {
+    PyObject *ptype, *pvalue, *ptraceback;
+    PyErr_Fetch(&ptype, &pvalue, &ptraceback);
+    return std::string(PyUnicode_AsUTF8(PyObject_Str(pvalue)));
+}
 #endif
 
 PythonComponent::PythonComponent(std::string id, ComponentGraphConfig* configPt) :
@@ -60,20 +66,20 @@ PythonComponent::PythonComponent(std::string id, ComponentGraphConfig* configPt)
 #endif
     PySys_SetPath((wchar_t*)completePythonPath.c_str());
 
-    if (PyImport_ImportModule("numpy") == NULL) { PyErr_Print(); GODEC_ERR << "Unable to import numpy"; }
-    if (PyImport_ImportModule("numpy.core.multiarray") == NULL) {PyErr_Print(); GODEC_ERR << "Unable to import numpy.core.multiarray";}
+    if (PyImport_ImportModule("numpy") == NULL) { GODEC_ERR << "Unable to import numpy, reason: " << GetPyErr(); }
+    if (PyImport_ImportModule("numpy.core.multiarray") == NULL) {GODEC_ERR << "Unable to import numpy.core.multiarray, reason: " << GetPyErr();}
 
     mPModule = PyImport_ImportModule((char*)(scriptPath.stem().string().c_str()));
 
-    if (mPModule == NULL) { PyErr_Print(); GODEC_ERR << getLPId(false) << "Could not load Python script '" << scriptName << "'. Make sure to omit the '.py' ending, and set the 'python_path' parameter if necessary (keep in mind to use the correct separator: ':' for Linux, ';' for Windows)";}
+    if (mPModule == NULL) { GODEC_ERR << getLPId(false) << "Could not load Python script '" << scriptPath.stem().string() << "', reason: " << GetPyErr() << std::endl << ". Make sure to omit the '.py' ending, and set the 'python_path' parameter if necessary (keep in mind to use the correct separator: ':' for Linux, ';' for Windows)";}
 
     mPModuleDict = PyModule_GetDict(mPModule);
-    if (mPModuleDict == NULL) GODEC_ERR << getLPId(false) << "Could not extract Python module dict";
+    if (mPModuleDict == NULL) GODEC_ERR << getLPId(false) << "Could not extract Python module dict, reason: " << GetPyErr();
 
     std::string className = configPt->get<std::string>("class_name", "The name of the class that contains the ProcessMessage function");
     std::string constructorParam = configPt->get<std::string>("class_constructor_param", "string parameter passed into class constructor");
     PyObject* pClass = PyDict_GetItemString(mPModuleDict, className.c_str());
-    if (pClass == NULL) GODEC_ERR << getLPId(false) <<  "Could not find class '" << className << "' in Python module";
+    if (pClass == NULL) GODEC_ERR << getLPId(false) <<  "Could not find class '" << className << "' in Python module, reason: " << GetPyErr();
     PyObject* pConstructorArgs = PyTuple_New(4);
     PyObject* pClassParam = PyUnicode_FromString(constructorParam.c_str());
     PyObject* pStdoutParam = PyFile_FromFd(STDOUT_FILENO, "<stdout>", "w", -1, NULL, NULL, "\n", 0);
@@ -83,7 +89,7 @@ PythonComponent::PythonComponent(std::string id, ComponentGraphConfig* configPt)
     PyTuple_SetItem(pConstructorArgs, 2, pStderrParam);
     PyTuple_SetItem(pConstructorArgs, 3, isVerbose() ? Py_True : Py_False);
     mPClass = PyObject_CallObject(pClass, pConstructorArgs);
-    if(mPClass == NULL) GODEC_ERR << getLPId(false) << ": Could not instantiate class!";
+    if(mPClass == NULL) GODEC_ERR << getLPId(false) << ": Could not instantiate class, reason: " << GetPyErr();
 
     std::string expectedInputs = configPt->get<std::string>("expected_inputs", "comma-separated list of expected input slots");
     std::string expectedOutputs = configPt->get<std::string>("expected_outputs", "comma-separated list of expected output slots");

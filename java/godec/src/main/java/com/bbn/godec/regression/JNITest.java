@@ -48,7 +48,6 @@ public class JNITest {
     {
       System.out.println("Checking convstate message");
       DecoderMessage msg = new ConversationStateDecoderMessage(
-          "dummy",
           ticks, 
           "utt_id", 
           true, 
@@ -62,7 +61,6 @@ public class JNITest {
     {
       System.out.println("Checking binary message");
       DecoderMessage msg = new BinaryDecoderMessage(
-          "dummy",
           ticks, 
           new byte[] {3,7,5,8,6,4,2,5,8}, 
           "myformat" 
@@ -74,7 +72,6 @@ public class JNITest {
     {
       System.out.println("Checking audio message");
       DecoderMessage msg = new AudioDecoderMessage(
-          "dummy",
           ticks, 
           new Vector(new float[] {23.5f,5645.2f,6756.3f}), 
           44100.0f,
@@ -91,7 +88,6 @@ public class JNITest {
       long timestamps[] = new long[78];
       timestamps[77] = ticks;
       DecoderMessage msg = new FeaturesDecoderMessage(
-          "dummy",
           ticks, 
           "utt_id",
           m,
@@ -105,7 +101,6 @@ public class JNITest {
     {
       System.out.println("Checking JSON message");
       DecoderMessage msg = new JsonDecoderMessage(
-          "dummy",
           ticks, 
           "{ \"hello\": \"123\" }"
           );
@@ -125,7 +120,6 @@ public class JNITest {
             )
           );
       NbestDecoderMessage msg = new NbestDecoderMessage(
-          "dummy",
           ticks, 
           commEntries
           );

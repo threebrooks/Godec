@@ -1,2 +1,0 @@
-def bla():
-  print("Hello")

@@ -121,7 +121,7 @@ extern "C" {
     // The Python version of the same. Also return nullptr if you don't have a custom message
     JNIEXPORT DecoderMessage_ptr GodecPythonToMsg(PyObject* pMsg) {
         DecoderMessage_ptr outMsg = nullptr;
-        PyObject* pType = PyDict_GetItemString(pMsg,"type");
+        PyObject* pType = PyObject_GetAttr(pMsg, PyUnicode_FromString("type"));
         if (pType == NULL) GODEC_ERR << "GodecPythonToMsg: Passed-in message did not have a 'type' key. Invalid message";
         std::string type = PyUnicode_AsUTF8(pType);
         if (type == "AudioDecoderMessage") {

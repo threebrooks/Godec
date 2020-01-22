@@ -5,8 +5,8 @@ import com.google.gson.*;
 public class JsonDecoderMessage extends DecoderMessage {
   public JsonObject jsonObject;
 
-  public JsonDecoderMessage(String tag, long time, String jsonString) {
-    super(tag, time);
+  public JsonDecoderMessage(long time, String jsonString) {
+    super(time);
     JsonParser parser = new JsonParser();
     jsonObject = parser.parse(jsonString).getAsJsonObject();
   }

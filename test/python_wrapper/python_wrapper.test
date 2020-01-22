@@ -1,0 +1,11 @@
+#!/bin/bash -e
+
+if [[ -z "$PYTHON_HOME" ]]
+then
+  echo "Need to set PYTHON_HOME variable!"
+  exit -1
+fi
+
+PYTHON=$PYTHON_HOME/bin/python3
+
+$PYTHON python_wrapper_test.py python_wrapper.json

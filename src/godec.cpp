@@ -361,5 +361,139 @@ extern "C" {
         globalGodecInjectedEndpoints.clear();
     }
 
+#ifndef ANDROID
+
+    static PyObject* PythonLoadGodec(PyObject *self, PyObject *args) {
+
+        if (globalGodecInstance != nullptr) GODEC_ERR << "Already an instance loaded";
+        PyObject* pOVs = nullptr;
+        PyObject* pPushEndpoints = nullptr;
+        PyObject* pPullEndpoints = nullptr;
+        int quiet;
+
+        const char *jsonPathNativeString;
+        if (!PyArg_ParseTuple(args, "sOOOp", &jsonPathNativeString, &pOVs, &pPushEndpoints, &pPullEndpoints, &quiet)) return NULL;
+        PyObject* pOvDict = PyObject_GetAttr(pOVs, PyUnicode_FromString("ov_dict"));
+        PyObject *ovKey, *ovValue;
+        Py_ssize_t ovPos = 0;
+        std::vector<std::pair<std::string, std::string>> ov;
+        while (PyDict_Next(pOvDict, &ovPos, &ovKey, &ovValue)) {
+            const char* keyChars = PyUnicode_AsUTF8(ovKey);
+            const char* valueChars = PyUnicode_AsUTF8(ovValue);
+            ov.push_back(std::make_pair(keyChars, valueChars));
+        }
+
+        // Push endpoints
+        json endpoints;
+        {
+            PyObject* pPushList = PyObject_GetAttr(pPushEndpoints, PyUnicode_FromString("push_list"));
+            PyObject *iterator = PyObject_GetIter(pPushList);
+            PyObject *item;
+            while ((item = PyIter_Next(iterator))) {
+                const char* endpointNameChar = PyUnicode_AsUTF8(item);
+                globalGodecInjectedEndpoints.push_back(ComponentGraph::TOPLEVEL_ID+ComponentGraph::TREE_LEVEL_SEPARATOR + endpointNameChar);
+                std::vector<std::string> inputs;
+                endpoints["!"+std::string(endpointNameChar)+ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(false, inputs, endpointNameChar);
+                Py_DECREF(item);
+            }
+        }
+
+        // Pull endpoints
+        {
+            PyObject* pPullDict = PyObject_GetAttr(pPullEndpoints, PyUnicode_FromString("pull_dict"));
+            PyObject *pullKey, *pullValue;
+            Py_ssize_t pullPos = 0;
+            while (PyDict_Next(pPullDict, &pullPos, &pullKey, &pullValue)) {
+                const char* endpointNameChar = PyUnicode_AsUTF8(pullKey);
+                PyObject *streamsIterator = PyObject_GetIter(pullValue);
+                PyObject *streamItem;
+                std::vector<std::string> inputs;
+                while ((streamItem = PyIter_Next(streamsIterator))) {
+                    const char* streamNameChar = PyUnicode_AsUTF8(streamItem);
+                    inputs.push_back(streamNameChar);
+                    Py_DECREF(streamItem);
+                }
+                endpoints["!"+std::string(endpointNameChar)+ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(false, inputs, "");
+            }
+        }
+
+        // Instantiate Godec
+        GlobalComponentGraphVals globals;
+        globals.put<bool>(LoopProcessor::QuietGodec, quiet);
+        globalGodecInstance = boost::shared_ptr<ComponentGraph>(new ComponentGraph(ComponentGraph::TOPLEVEL_ID, jsonPathNativeString, ComponentGraphConfig::FromOverrideList(ov), endpoints, &globals));
+        return Py_None;
+    }
+
+    static PyObject* PythonPushMessage(PyObject *self, PyObject *args) {
+        if (globalGodecInstance == nullptr) GODEC_ERR << "No godec instance loaded";
+
+        PyObject* pMessage = nullptr;
+        const char *endpointName;
+        if (!PyArg_ParseTuple(args, "sO", &endpointName, &pMessage)) return NULL;
+        DecoderMessage_ptr msg = globalGodecInstance->PythonToDecoderMsg(pMessage);
+        globalGodecInstance->PushMessage(ComponentGraph::TOPLEVEL_ID+ComponentGraph::TREE_LEVEL_SEPARATOR + std::string(endpointName), msg);
+        return Py_None;
+    }
+
+    static PyObject* PythonBlockingShutdown(PyObject *self, PyObject *args) {
+        if (globalGodecInstance == nullptr) GODEC_ERR << "No instance loaded";
+        for(auto it = globalGodecInjectedEndpoints.begin(); it != globalGodecInjectedEndpoints.end(); it++) {
+            auto endpoint = globalGodecInstance->GetApiEndpoint(*it);
+            endpoint->getInputChannel().checkOut("Java");
+        }
+        globalGodecInstance->WaitTilShutdown();
+#ifndef ANDROID
+#ifndef _MSC_VER
+        mallopt(M_CHECK_ACTION, 5); // See beginning of file for explanation
+#endif
+#endif
+        globalGodecInstance = nullptr;
+        globalGodecInjectedEndpoints.clear();
+        return Py_None;
+    }
+
+    static PyObject* PythonPullMessage(PyObject *self, PyObject *args) {
+        const char* endpointName = nullptr;
+        float timeOut;
+        if (!PyArg_ParseTuple(args, "sf", &endpointName, &timeOut)) return NULL;
+        unordered_map<std::string, DecoderMessage_ptr> map;
+        ChannelReturnResult res = globalGodecInstance->PullMessage(ComponentGraph::TOPLEVEL_ID+ComponentGraph::TREE_LEVEL_SEPARATOR+std::string(endpointName), timeOut, map);
+        if (res == ChannelClosed) {
+            return nullptr;
+        }
+        if (res == ChannelTimeout) {
+            return Py_None;
+        }
+
+        PyObject* pDict = PyDict_New();
+        for (auto mapIt = map.begin(); mapIt != map.end(); mapIt++) {
+            std::string slot = mapIt->first;
+            auto msg = boost::const_pointer_cast<DecoderMessage>(mapIt->second);
+            PyDict_SetItemString(pDict, slot.c_str(), msg->toPython());
+        }
+        return pDict;
+    }
+
+    static PyMethodDef GodecPythonMethods[] = {
+        {"load_godec",  PythonLoadGodec, METH_VARARGS, "Load Godec instance"},
+        {"push_message",  PythonPushMessage, METH_VARARGS, "Push message"},
+        {"pull_message",  PythonPullMessage, METH_VARARGS, "PUll message"},
+        {"blocking_shutdown",  PythonBlockingShutdown, METH_VARARGS, "Blocking shutdown"},
+        {NULL, NULL, 0, NULL}        /* Sentinel */
+    };
+
+    static struct PyModuleDef cModPyDem = {
+        PyModuleDef_HEAD_INIT,
+        "godec", /* name of module */
+        "Python wrapper to Godec",          /* module documentation, may be NULL */
+        -1,          /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+        GodecPythonMethods
+    };
+
+    PyMODINIT_FUNC PyInit_libgodec(void) {
+        return PyModule_Create(&cModPyDem);
+    }
+
+#endif
 
 }

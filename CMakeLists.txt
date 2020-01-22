@@ -179,6 +179,7 @@ endif()
 add_subdirectory(src/core_components)
 add_subdirectory(doc)
 add_subdirectory(java)
+add_subdirectory(python)
 
 add_library(godec_dynamic SHARED src/godec.cpp ${SOURCE_FILES})
 

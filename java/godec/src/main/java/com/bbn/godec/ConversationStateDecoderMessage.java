@@ -10,8 +10,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 public class ConversationStateDecoderMessage extends DecoderMessage {
-  public ConversationStateDecoderMessage(String tag, long time, String uttId, boolean lastChunkInUtt, String convoId, boolean lastChunkInConvo) {
-    super(tag, time);
+  public ConversationStateDecoderMessage(long time, String uttId, boolean lastChunkInUtt, String convoId, boolean lastChunkInConvo) {
+    super(time);
     mUtteranceId = uttId;
     mLastChunkInUtt = lastChunkInUtt;
     mConvoId = convoId;
@@ -67,7 +67,6 @@ public class ConversationStateDecoderMessage extends DecoderMessage {
 
   public static ConversationStateDecoderMessage fromJson(Map<String,Object> map) {
     ConversationStateDecoderMessage outMsg = new ConversationStateDecoderMessage(
-        "", 
         0, 
         (String)map.get("mUtteranceId"),
         (Boolean)map.get("mLastChunkInUtt"),

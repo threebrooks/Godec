@@ -2,7 +2,6 @@ import sys
 import traceback
 import numpy as np
 import numpy.core.multiarray
-import dummy_module as dm
 
 class PythonTest:
   def __init__(self,config, stdout, stderr, verbose):
@@ -27,9 +26,9 @@ class PythonTest:
   def ProcessMessage(self, msgHash):
     try:
       if (self.verbose):
-        print("ProcessMessage was called with features of shape "+str(msgHash['features']['features'].shape))
-        print("Ignore data is set to "+str(msgHash['conversation_state']['descriptor']))
-      msgHash['features']['features'] *= self.mult_fac
+        print("ProcessMessage was called with features of shape "+str(msgHash['features'].features.shape))
+        print("Ignore data is set to "+str(msgHash['conversation_state'].descriptor))
+      msgHash['features'].features *= self.mult_fac
       del msgHash['conversation_state']
   
     except:

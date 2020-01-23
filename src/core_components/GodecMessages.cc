@@ -195,11 +195,11 @@ DecoderMessage_ptr AudioDecoderMessage::fromPython(PyObject* pMsg) {
 
     PyObject* pSampleRate = PyObject_GetAttrString(pMsg,"sample_rate");
     if (pSampleRate == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'sample_rate'!";
-    float sampleRate = boost::lexical_cast<float>(PyUnicode_AsUTF8(pSampleRate));
+    float sampleRate = PyFloat_AsDouble(pSampleRate);
 
     PyObject* pTicksPerSample = PyObject_GetAttrString(pMsg,"ticks_per_sample");
     if (pTicksPerSample == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'ticks_per_sample'!";
-    float ticksPerSample = boost::lexical_cast<float>(PyUnicode_AsUTF8(pTicksPerSample));
+    float ticksPerSample = PyFloat_AsDouble(pTicksPerSample);
 
     // matrix
     PyArrayObject* pAudio = (PyArrayObject*)PyObject_GetAttrString(pMsg,"audio");

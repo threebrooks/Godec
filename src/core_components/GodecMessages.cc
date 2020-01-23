@@ -171,7 +171,7 @@ PyObject* AudioDecoderMessage::toPython() {
     PyObject* pAudio = PyArray_SimpleNew(1, featDims, NPY_FLOAT32);
     if (pAudio == NULL) GODEC_ERR << "Could not allocate feature memory";
     for(int idx = 0; idx < mAudio.size(); idx++) {
-        *((float*)PyArray_GETPTR1(pAudio, idx)) = mAudio(idx);
+        *((double*)PyArray_GETPTR1(pAudio, idx)) = mAudio(idx);
     }
 
     PyObject *pArgList = Py_BuildValue("lOff", getTime(), pAudio, mSampleRate, mTicksPerSample);
@@ -203,12 +203,12 @@ DecoderMessage_ptr AudioDecoderMessage::fromPython(PyObject* pMsg) {
 
     // matrix
     PyArrayObject* pAudio = (PyArrayObject*)PyObject_GetAttrString(pMsg,"audio");
-    if (pAudio == NULL) GODEC_ERR << "AudioDecoderMessage::fromPython : Dict does not contain field 'audio'!";
+    if (pAudio == nullptr) GODEC_ERR << "AudioDecoderMessage::fromPython : Dict does not contain field 'audio'!";
     if (PyArray_NDIM(pAudio) != 1) GODEC_ERR << "AudioDecoderMessage::fromPython : audio element is not one-dimensional! Dimension is " << PyArray_NDIM(pAudio);
     npy_intp* pAudioDims = PyArray_SHAPE(pAudio);
     Vector audioVector(pAudioDims[0]);
     for(int idx = 0; idx < pAudioDims[0]; idx++) {
-        audioVector(idx) = *((float*)PyArray_GETPTR1(pAudio, idx));
+        audioVector(idx) = *((double*)PyArray_GETPTR1(pAudio, idx));
     }
 
     DecoderMessage_ptr outMsg = AudioDecoderMessage::create(time, audioVector.data(), audioVector.size(), sampleRate, ticksPerSample);
@@ -955,7 +955,7 @@ DecoderMessage_ptr ConversationStateDecoderMessage::fromPython(PyObject* pMsg) {
 
     PyObject* pLastChunkInConvo = PyObject_GetAttrString(pMsg,"last_chunk_in_convo");
     if (pLastChunkInConvo == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'last_chunk_in_convo'!";
-    bool lastChunkInConvo = pLastChunkInConvo  == Py_False ? true : false;
+    bool lastChunkInConvo = pLastChunkInConvo == Py_True ? true : false;
 
     DecoderMessage_ptr outMsg = ConversationStateDecoderMessage::create(time, uttId, lastChunkInUtt, convoId, lastChunkInConvo);
     (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);

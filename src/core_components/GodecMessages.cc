@@ -453,7 +453,8 @@ PyObject* FeaturesDecoderMessage::toPython() {
     GodecMessages_init_numpy();
 
     npy_intp timeDims[1] {(npy_intp)mFeatureTimestamps.size()};
-    PyObject* pTimestamps = PyArray_SimpleNewFromData(1, timeDims, NPY_UINT64, &mFeatureTimestamps[0]);
+    PyObject* pTimestamps = PyArray_SimpleNew(1, timeDims, NPY_UINT64);
+    memcpy(PyArray_GETPTR1(pTimestamps, 0), &mFeatureTimestamps[0], sizeof(uint64_t)*mFeatureTimestamps.size());
     if (pTimestamps == NULL) GODEC_ERR << "Could not allocate feature timestamps memory";
 
     npy_intp featDims[2] {(npy_intp)mFeatures.rows(), (npy_intp)mFeatures.cols()};

@@ -24,7 +24,6 @@ class SingleTimeStream : public  std::vector<DecoderMessage_ptr> {
     SingleTimeStream();
     bool canSliceAt(uint64_t, bool verbose, std::string& id);
     bool sliceOut(uint64_t, DecoderMessage_ptr& sliceMsg, bool verbose, std::string& id);
-  private:
     int64_t mStreamOffset;
 };
 

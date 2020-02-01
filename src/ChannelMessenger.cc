@@ -267,7 +267,6 @@ void LoopProcessor::ProcessLoopMessages() {
             if (mInputTag2Slot.find(newMessage->getTag()) == mInputTag2Slot.end()) {
                 GODEC_ERR << getLPId(false) << ": Can't find slot for tag '" << newMessage->getTag() << "'" << std::endl;
             }
-
             for (auto slotIt = mInputTag2Slot[newMessage->getTag()].begin(); slotIt != mInputTag2Slot[newMessage->getTag()].end(); slotIt++) {
                 std::string& slot = *slotIt;
                 auto inputSlotIt = mInputSlots.begin();

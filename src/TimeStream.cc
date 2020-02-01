@@ -17,6 +17,8 @@ void TimeStreams::addStream(std::string streamName) {
 void TimeStreams::addMessage(DecoderMessage_ptr msg, std::string slot) {
     if (mStream.find(slot) == mStream.end()) GODEC_ERR << "Feeding into uninitialized stream '" << slot << "'";
     SingleTimeStream& stream = mStream[slot];
+
+    if (stream.mStreamOffset >= (int64_t)msg->getTime()) GODEC_ERR << mId << ": Received out-of-order messages in slot " << slot << ". Previous msg had timestamp : " << stream.mStreamOffset << std::endl << std::endl << " Incoming message was  " << std::endl << msg->describeThyself() << std::endl;
     if (stream.size() == 0) {
         stream.push_back(msg->clone()); // We have to place cloned messages because otherwise we're modifying shared messages
         return;

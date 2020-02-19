@@ -14,6 +14,7 @@ class EnergyComponent : public LoopProcessor {
 
   private:
     void ProcessMessage(const DecoderMessageBlock& msgBlock);
+    bool mDBEnergy;
 };
 
 }

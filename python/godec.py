@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'bin'))
 import libgodec
+import numpy as np
 
 # Godec init structures
 
@@ -63,6 +64,9 @@ class conversation_state_decoder_message(decoder_message):
 class audio_decoder_message(decoder_message):
   def __init__(self, time, audio, sample_rate, ticks_per_sample):
     super().__init__(time, "AudioDecoderMessage")
+    if ((type(audio) is not np.ndarray) or (audio.dtype != np.float)):
+      print("audio_decoder_message: 'audio' field not a numpy float array")
+      sys.exit(-1)
     self.audio = audio
     self.sample_rate = sample_rate
     self.ticks_per_sample = ticks_per_sample

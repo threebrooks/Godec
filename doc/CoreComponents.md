@@ -17,6 +17,7 @@
 [SoundcardRecorder](#soundcardrecorder)  
 [Submodule](#submodule)  
 [Subsample](#subsample)  
+[Window](#window)  
 
 
 ## AudioPreProcessor
@@ -76,6 +77,11 @@ Averages the incoming feature stream. Will issue the averaged features when seei
 
 ### Short description:
 Calculates energy features on incoming windowed audio (feature input message produced by Window component)
+
+#### Parameters
+| Parameter | Type | Description |
+| --- | --- | --- |
+| dB\_energy | bool | Pure acoustic energy, or log-energy? (true, false) |
 
 #### Inputs
 | Input slot | Message Type | 
@@ -545,3 +551,30 @@ Godec equivalent of subsample-feats executable, for subsampling/repeating featur
 | Output slot | 
 | --- | 
 | features | 
+
+
+## Window
+
+---
+
+### Short description:
+Chops incoming audio stream into windowed audio features
+
+#### Parameters
+| Parameter | Type | Description |
+| --- | --- | --- |
+| analysis\_frame\_size | float | Analysis frame size in milliseconds |
+| analysis\_frame\_step\_size | float | Analysis frame step size |
+| low\_latency | bool | Low-latency mode (assumes never-ending audio, can not be used in offline!) |
+| sampling\_frequency | float | Source sampling rate |
+| windowing\_function | string | Windowing function (hamming,blackman, rectangle) |
+
+#### Inputs
+| Input slot | Message Type | 
+| --- | --- | 
+| streamed\_audio | AudioDecoderMessage|
+
+#### Outputs
+| Output slot | 
+| --- | 
+| windowed\_audio | 

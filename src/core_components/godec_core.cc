@@ -17,6 +17,7 @@
 #include "FileWriter.h"
 #include "AudioPreProcessor.h"
 #include "SubModule.h"
+#include "Window.h"
 
 #ifdef _MSC_VER
 // Is this actually needed? Leaving it here, doesn't seem to hurt
@@ -62,6 +63,7 @@ extern "C" {
         else if (compString == "SoundcardPlayer") return SoundcardPlayerComponent::make(id,configPt);
         else if (compString == "Java") return JavaComponent::make(id,configPt);
         else if (compString == "Python") return PythonComponent::make(id,configPt);
+        else if (compString == "Window") return WindowComponent::make(id,configPt);
         else GODEC_ERR << "Godec core library: Asked for unknown component " << compString;
         return NULL;
     }
@@ -83,6 +85,7 @@ extern "C" {
         std::cout << "SoundcardPlayer: " << SoundcardPlayerComponent::describeThyself() << std::endl;
         std::cout << "Java: " << JavaComponent::describeThyself() << std::endl;
         std::cout << "Python: " << PythonComponent::describeThyself() << std::endl;
+        std::cout << "Window: " << WindowComponent::describeThyself() << std::endl;
     }
 
     // For checking whether all libraries are of the same version

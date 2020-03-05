@@ -16,5 +16,37 @@
     {
       "streamed_audio_0": "preproc_audio"
     }
+  },
+  "window":
+  {
+    "verbose": "false",
+    "type": "Window",
+    "low_latency": "false",
+    "sampling_frequency": "8000",
+    "analysis_frame_size": "1000",
+    "analysis_frame_step_size": "500",
+    "windowing_function": "hamming",
+    "inputs": { 
+      "conversation_state": "convstate",
+      "streamed_audio": "preproc_audio"
+    },
+    "outputs":
+    {
+      "windowed_audio": "windowed_audio"
+    }
+  },
+  "energy":
+  {
+    "verbose": "false",
+    "type": "Energy",
+    "dB_energy": "true",
+    "inputs": { 
+      "conversation_state": "convstate",
+      "windowed_audio": "windowed_audio"
+    },
+    "outputs":
+    {
+      "features": "energy"
+    }
   }
 }

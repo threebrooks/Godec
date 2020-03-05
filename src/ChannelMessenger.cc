@@ -66,6 +66,8 @@ void DecoderMessage::PythonGetDecoderMessageVals(PyObject* pMsg, uint64_t& time,
     PyObject* pDesc = PyObject_GetAttr(pMsg, PyUnicode_FromString("descriptor"));
     if (pDesc == nullptr) GODEC_ERR << "Python message dict does not contain 'descriptor' entry!";
     descriptor = PyUnicode_AsUTF8(pDesc);
+    Py_DECREF(pDesc);
+    Py_DECREF(pTime);
 }
 #endif
 

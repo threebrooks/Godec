@@ -168,7 +168,7 @@ PyObject* AudioDecoderMessage::toPython() {
     GodecMessages_init_numpy();
 
     npy_intp featDims[1] {mAudio.size()};
-    PyObject* pAudio = PyArray_SimpleNew(1, featDims, NPY_FLOAT32);
+    PyObject* pAudio = PyArray_SimpleNew(1, featDims, NPY_FLOAT64);
     if (pAudio == NULL) GODEC_ERR << "Could not allocate feature memory";
     for(int idx = 0; idx < mAudio.size(); idx++) {
         *((double*)PyArray_GETPTR1(pAudio, idx)) = mAudio(idx);
@@ -184,6 +184,9 @@ PyObject* AudioDecoderMessage::toPython() {
     if (pObj == NULL) GODEC_ERR << "Could not instantiate audio_decoder_message";
 
     PyObject_SetAttrString(pObj, "descriptor",  PyUnicode_FromString(getFullDescriptorString().c_str()));
+    Py_DECREF(pClassObj);
+    Py_DECREF(pModuleObj);
+    Py_DECREF(pArgList);
     return pObj;
 }
 
@@ -213,6 +216,9 @@ DecoderMessage_ptr AudioDecoderMessage::fromPython(PyObject* pMsg) {
 
     DecoderMessage_ptr outMsg = AudioDecoderMessage::create(time, audioVector.data(), audioVector.size(), sampleRate, ticksPerSample);
     (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    Py_DECREF(pAudio);
+    Py_DECREF(pTicksPerSample);
+    Py_DECREF(pSampleRate);
     return outMsg;
 }
 #endif
@@ -458,7 +464,7 @@ PyObject* FeaturesDecoderMessage::toPython() {
     if (pTimestamps == NULL) GODEC_ERR << "Could not allocate feature timestamps memory";
 
     npy_intp featDims[2] {(npy_intp)mFeatures.rows(), (npy_intp)mFeatures.cols()};
-    PyObject* pFeats = PyArray_SimpleNew(2, featDims, NPY_FLOAT32);
+    PyObject* pFeats = PyArray_SimpleNew(2, featDims, NPY_FLOAT64);
     if (pFeats == NULL) GODEC_ERR << "Could not allocate feature memory";
     for(int row = 0; row < mFeatures.rows(); row++) {
         for(int col = 0; col < mFeatures.cols(); col++) {
@@ -476,7 +482,9 @@ PyObject* FeaturesDecoderMessage::toPython() {
     if (pObj == NULL) GODEC_ERR << "Could not instantiate features_decoder_message";
 
     PyObject_SetAttrString(pObj, "descriptor",  PyUnicode_FromString(getFullDescriptorString().c_str()));
-
+    Py_DECREF(pClassObj);
+    Py_DECREF(pModuleObj);
+    Py_DECREF(pArgList);
     return pObj;
 }
 DecoderMessage_ptr FeaturesDecoderMessage::fromPython(PyObject* pMsg) {
@@ -516,6 +524,10 @@ DecoderMessage_ptr FeaturesDecoderMessage::fromPython(PyObject* pMsg) {
 
     DecoderMessage_ptr outMsg = FeaturesDecoderMessage::create(time, uttId, featureMatrix, featureNames, featureTimestamps);
     (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    Py_DECREF(pFeatures);
+    Py_DECREF(pTimestamps);
+    Py_DECREF(pFeatureNames);
+    Py_DECREF(pUttId);
     return outMsg;
 }
 #endif
@@ -774,6 +786,10 @@ void PythonGetNbestEntry(PyObject* pEntry, NbestEntry& entry) {
     PyObject* pConfidences = PyObject_GetAttr(pEntry, PyUnicode_FromString("confidences"));
     if (pConfidences == nullptr) GODEC_ERR << "Python message dict does not contain 'confidences' entry!";
     for (int idx = 0; idx < wordsArraySize; idx++) entry.mConfidences.push_back(PyFloat_AsDouble(PyList_GetItem(pConfidences, idx)));
+    Py_DECREF(pConfidences);
+    Py_DECREF(pText);
+    Py_DECREF(pAlignment);
+    Py_DECREF(pWords);
 }
 
 PyObject* NbestDecoderMessage::toPython() {
@@ -800,6 +816,7 @@ DecoderMessage_ptr NbestDecoderMessage::fromPython(PyObject* pMsg) {
     }
     DecoderMessage_ptr outMsg = NbestDecoderMessage::create(time, entries);
     (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    Py_DECREF(pEntries);
     return outMsg;
 }
 #endif
@@ -934,6 +951,9 @@ PyObject* ConversationStateDecoderMessage::toPython() {
     if (pObj == NULL) GODEC_ERR << "Could not instantiate features_decoder_message";
 
     PyObject_SetAttrString(pObj, "descriptor",  PyUnicode_FromString(getFullDescriptorString().c_str()));
+    Py_DECREF(pClassObj);
+    Py_DECREF(pModuleObj);
+    Py_DECREF(pArgList);
     return pObj;
 }
 DecoderMessage_ptr ConversationStateDecoderMessage::fromPython(PyObject* pMsg) {
@@ -960,6 +980,10 @@ DecoderMessage_ptr ConversationStateDecoderMessage::fromPython(PyObject* pMsg) {
 
     DecoderMessage_ptr outMsg = ConversationStateDecoderMessage::create(time, uttId, lastChunkInUtt, convoId, lastChunkInConvo);
     (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    Py_DECREF(pLastChunkInConvo);
+    Py_DECREF(pLastChunkInUtt);
+    Py_DECREF(pConvoId);
+    Py_DECREF(pUttId);
     return outMsg;
 }
 #endif
@@ -1064,6 +1088,9 @@ PyObject* BinaryDecoderMessage::toPython() {
     if (pObj == NULL) GODEC_ERR << "Could not instantiate binary_decoder_message";
 
     PyObject_SetAttrString(pObj, "descriptor",  PyUnicode_FromString(getFullDescriptorString().c_str()));
+    Py_DECREF(pClassObj);
+    Py_DECREF(pModuleObj);
+    Py_DECREF(pArgList);
     return pObj;
 }
 DecoderMessage_ptr BinaryDecoderMessage::fromPython(PyObject* pMsg) {
@@ -1086,6 +1113,8 @@ DecoderMessage_ptr BinaryDecoderMessage::fromPython(PyObject* pMsg) {
 
     DecoderMessage_ptr outMsg = BinaryDecoderMessage::create(time, data, format);
     (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    Py_DECREF(pFormat);
+    Py_DECREF(pData);
     return outMsg;
 }
 #endif
@@ -1140,6 +1169,9 @@ PyObject* JsonDecoderMessage::toPython() {
     if (pObj == NULL) GODEC_ERR << "Could not instantiate json_decoder_message";
 
     PyObject_SetAttrString(pObj, "descriptor",  PyUnicode_FromString(getFullDescriptorString().c_str()));
+    Py_DECREF(pClassObj);
+    Py_DECREF(pModuleObj);
+    Py_DECREF(pArgList);
     return pObj;
 }
 
@@ -1155,6 +1187,7 @@ DecoderMessage_ptr JsonDecoderMessage::fromPython(PyObject* pMsg) {
 
     DecoderMessage_ptr outMsg = JsonDecoderMessage::create(time, j);
     (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    Py_DECREF(pJson);
     return outMsg;
 }
 #endif

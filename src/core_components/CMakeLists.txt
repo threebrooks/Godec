@@ -48,6 +48,8 @@ set(SOURCE_FILES
         SubModule.h
         Subsample.cc
         Subsample.h
+        Window.cc
+        Window.h
         )
 
 add_library(godec_core_static STATIC ${SOURCE_FILES})

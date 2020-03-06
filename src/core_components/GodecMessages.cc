@@ -468,7 +468,7 @@ PyObject* FeaturesDecoderMessage::toPython() {
     if (pFeats == NULL) GODEC_ERR << "Could not allocate feature memory";
     for(int row = 0; row < mFeatures.rows(); row++) {
         for(int col = 0; col < mFeatures.cols(); col++) {
-            *((float*)PyArray_GETPTR2(pFeats, row, col)) = mFeatures(row,col);
+            *((double*)PyArray_GETPTR2(pFeats, row, col)) = mFeatures(row,col);
         }
     }
 

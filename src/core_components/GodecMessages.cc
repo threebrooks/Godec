@@ -168,10 +168,10 @@ PyObject* AudioDecoderMessage::toPython() {
     GodecMessages_init_numpy();
 
     npy_intp featDims[1] {mAudio.size()};
-    PyObject* pAudio = PyArray_SimpleNew(1, featDims, NPY_FLOAT64);
+    PyObject* pAudio = PyArray_SimpleNew(1, featDims, NPY_DOUBLE);
     if (pAudio == NULL) GODEC_ERR << "Could not allocate feature memory";
     for(int idx = 0; idx < mAudio.size(); idx++) {
-        *((double*)PyArray_GETPTR1(pAudio, idx)) = mAudio(idx);
+        *((double*)PyArray_GETPTR1(pAudio, idx)) = (double)mAudio(idx);
     }
 
     PyObject *pArgList = Py_BuildValue("lOff", getTime(), pAudio, mSampleRate, mTicksPerSample);
@@ -464,11 +464,11 @@ PyObject* FeaturesDecoderMessage::toPython() {
     if (pTimestamps == NULL) GODEC_ERR << "Could not allocate feature timestamps memory";
 
     npy_intp featDims[2] {(npy_intp)mFeatures.rows(), (npy_intp)mFeatures.cols()};
-    PyObject* pFeats = PyArray_SimpleNew(2, featDims, NPY_FLOAT64);
+    PyObject* pFeats = PyArray_SimpleNew(2, featDims, NPY_DOUBLE);
     if (pFeats == NULL) GODEC_ERR << "Could not allocate feature memory";
     for(int row = 0; row < mFeatures.rows(); row++) {
         for(int col = 0; col < mFeatures.cols(); col++) {
-            *((double*)PyArray_GETPTR2(pFeats, row, col)) = mFeatures(row,col);
+            *((double*)PyArray_GETPTR2(pFeats, row, col)) = (double)mFeatures(row,col);
         }
     }
 
@@ -518,7 +518,7 @@ DecoderMessage_ptr FeaturesDecoderMessage::fromPython(PyObject* pMsg) {
     featureMatrix.conservativeResize(pFeaturesDims[0], pFeaturesDims[1]);
     for(int row = 0; row < pFeaturesDims[0]; row++) {
         for(int col = 0; col < pFeaturesDims[1]; col++) {
-            featureMatrix(row,col) = *((float*)PyArray_GETPTR2(pFeatures, row, col));
+            featureMatrix(row,col) = *((double*)PyArray_GETPTR2(pFeatures, row, col));
         }
     }
 

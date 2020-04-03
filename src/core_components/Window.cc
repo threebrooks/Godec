@@ -73,7 +73,7 @@ void WindowComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
         mProcessPointerInAccumAudio += fLen;
 
         rawAudioSnippet.setZero();
-        int64_t pickupStart = std::max(0L,mProcessPointerInAccumAudio-wLen+1);
+        int64_t pickupStart = std::max((int64_t)0,mProcessPointerInAccumAudio-wLen+1);
         int64_t pickupSize = mProcessPointerInAccumAudio-pickupStart+1;
         rawAudioSnippet.tail(mProcessPointerInAccumAudio-pickupStart+1) = mAccumAudio.segment(pickupStart, pickupSize);
 

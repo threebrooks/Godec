@@ -12,7 +12,7 @@ matrix:
       addons:
         apt:
           sources:
-          - ubuntu-toolchain-r-test
+              - sourceline: 'ppa:ubuntu-toolchain-r/test'
           packages:
           - g++-7
           - libeigen3-dev
@@ -87,12 +87,12 @@ matrix:
       - wget -q http://archive.raspberrypi.org/debian/pool/main/a/alsa-lib/libasound2-dev_1.1.3-5+rpi3_armhf.deb
       - ar x libasound2-dev_1.1.3-5+rpi3_armhf.deb
       - tar xf data.tar.xz -C $HOME/alsa
-      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-8/openjdk-8-jdk_8u232-b09-1~deb9u1_armhf.deb
-      - ar x openjdk-8-jdk_8u232-b09-1~deb9u1_armhf.deb
+      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-8/openjdk-8-jdk_8u242-b08-1~deb9u1_armhf.deb
+      - ar x openjdk-8-jdk_8u242-b08-1~deb9u1_armhf.deb
       - mkdir $HOME/jdk
       - tar xf data.tar.xz -C $HOME/jdk
-      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-8/openjdk-8-jre-headless_8u232-b09-1~deb9u1_armhf.deb
-      - ar x openjdk-8-jre-headless_8u232-b09-1~deb9u1_armhf.deb
+      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-8/openjdk-8-jre-headless_8u242-b08-1~deb9u1_armhf.deb
+      - ar x openjdk-8-jre-headless_8u242-b08-1~deb9u1_armhf.deb
       - mkdir $HOME/jre
       - tar xf data.tar.xz -C $HOME/jre
       - mkdir $HOME/pydev
@@ -189,12 +189,10 @@ matrix:
       - tar xf apache-maven-3.6.3-bin.tar.gz -C $HOME
       - wget https://www.bruot.org/hp/media/files/libraries/zlib_1_2_8_msvc2015_64.zip
       - unzip zlib_1_2_8_msvc2015_64.zip -d $HOME/zlib
-      - mkdir -p $HOME/zlib/include
-      - mkdir -p $HOME/zlib/lib
-      - mv $HOME/zlib/msvc2015_64/lib/zlib/* $HOME/zlib/lib
-      - mv $HOME/zlib/msvc2015_64/include/zlib/* $HOME/zlib/include
+      - mv $HOME/zlib/msvc2015_64/include/zlib/* $HOME/zlib/msvc2015_64/include 
+      - mv $HOME/zlib/msvc2015_64/lib/zlib/* $HOME/zlib/msvc2015_64/lib
       - export PATH=$PATH:$HOME/apache-maven-3.6.3/bin:$HOME/$JAVA_HOME/bin
-      - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib -DZLIB_LIBRARY=$HOME/zlib/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_68_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_68_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python38/lib/site-packages/numpy/core/include"
+      - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib/msvc2015_64 -DZLIB_LIBRARY=$HOME/zlib/msvc2015_64/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_68_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_68_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python38/lib/site-packages/numpy/core/include"
       - export MY_MAKE_COMMAND="\"$MY_CMAKE\" --build . --target install --config Release"
 
 script:
@@ -207,8 +205,7 @@ script:
 
 deploy:
   provider: releases
-  api_key:
-    secure: pcwkgTXxddyWbL/9o04P3305bygRIHesS+nywX5AP0lzYzapBdbugUSujPXVtX9uy3VNmqKaUwLXIPIQshy23yH2AAxTTUM+bqo6bg8gERXn4769nc88OWE0JOpAI3cg7Y0wCIUq3GRtKO9ayE5bW1LBmJgVV6sfVr/0owNJIkKWonDDC4xhI9gT4pWDZ9dRwaZQ0sFsYaqb5ckaVywZZoGZ6SYo3BJH1RsOAaJvbbfUBc9Mj+Y1izCoNztBoJ+HsGk9Yp3Eofv469IR7I6IrYjLDcV3ZaccGrsOtJihoJSzMzZ3FF9pVg+0FLxOFFDFpOY7gFtHOsNgTfsLN+gsXyLYUdjYQ1y8f0rT0/8HT8HKkbSi/fIIISySoysbS6GGGQIIl0koiFspcGpzaF2Xha0DgkTwPkamGVCVCwrjdSdOt+sHNM/f+4TWu2yYt2EwdgmhmZNePwE/0DpLhG77k1DRuq/68pL61a055sw1b/qqPFizDupnn7/i/0f8p+W/BNIJnBAffm81bxLMyEll3z0WSi07hTJFAhZcyFDRVWPQ5iMLhXQ+OHXHq3OpOn7VjNrNg8Q/9x4ubWbPZ5iOgWfsiQnXir2zs+52GczrojacThvnhDsK2eLgG7TG91qF2dM5bsATxKvTIBvId4CNHyjST5LLSFX1KE+2Jif96Dk=
+  api_key: $GITHUB_TOKEN
   file: $HOME/godec.$OS_STRING.tgz
   skip_cleanup: true
   draft: false

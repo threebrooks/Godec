@@ -1,9 +1,9 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "Window.h"
 #include "godec/ComponentGraph.h"
 #include <boost/format.hpp>
 #include <iomanip>
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 namespace Godec {
 

@@ -92,7 +92,7 @@ sub ScanFile {
       seek CIN, 0, 0;
       while(my $line = <CIN>) {
         if ($line =~ /$className\:\:.+\(.*ComponentGraphConfig\ *\*/) {
-          my $bracketCounter = ($line =~ m/({)/g);
+          my $bracketCounter = ($line =~ m/(\{)/g);
           while (1) {
             my $constructorLine = <CIN>;
             if ($constructorLine =~ /GodecDocIgnore/i) {next;}

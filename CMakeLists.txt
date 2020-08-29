@@ -62,7 +62,7 @@ set(Boost_USE_MULTITHREADED ON)
 #set(Boost_DEBUG ON)
 
 find_package(Boost
-  1.55.0      # Minimum or EXACT version e.g. 1.36.0
+  1.74.0  
   REQUIRED             # Fail with error if Boost is not found
   COMPONENTS date_time atomic regex system serialization filesystem iostreams timer chrono program_options thread 
   )
@@ -78,7 +78,7 @@ if (NOT PLATFORM STREQUAL "Android")
   if ((NOT ALSA_INCLUDE_DIRS) AND (NOT PLATFORM STREQUAL "Windows"))
     find_package(ALSA REQUIRED)
   endif()
-  find_package(PythonLibs 3.8 REQUIRED)
+  find_package(PythonLibs 3.7 REQUIRED)
   find_package(Java REQUIRED)
   find_package(Java COMPONENTS REQUIRED Runtime)
   find_package(Java COMPONENTS REQUIRED Development)

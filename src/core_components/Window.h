@@ -26,8 +26,8 @@ class WindowComponent : public LoopProcessor {
     int64_t mUttStartStreamOffset;
     int64_t mProcessPointerInAccumAudio;
 
-    int wLen;
-    int fLen;
+    int windowSize;
+    int stepSize;
 };
 
 }

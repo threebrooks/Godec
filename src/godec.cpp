@@ -379,7 +379,9 @@ extern "C" {
         std::vector<std::pair<std::string, std::string>> ov;
         while (PyDict_Next(pOvDict, &ovPos, &ovKey, &ovValue)) {
             const char* keyChars = PyUnicode_AsUTF8(ovKey);
+            if (keyChars == nullptr) throw std::runtime_error("Could not get override key!");
             const char* valueChars = PyUnicode_AsUTF8(ovValue);
+            if (valueChars == nullptr) throw std::runtime_error(std::string("Could not get override value for key ")+keyChars+"!");
             ov.push_back(std::make_pair(keyChars, valueChars));
         }
 
@@ -391,6 +393,7 @@ extern "C" {
             PyObject *item;
             while ((item = PyIter_Next(iterator))) {
                 const char* endpointNameChar = PyUnicode_AsUTF8(item);
+                if (endpointNameChar == nullptr) throw std::runtime_error("Could not get push endpoint name!");
                 globalGodecInjectedEndpoints.push_back(ComponentGraph::TOPLEVEL_ID+ComponentGraph::TREE_LEVEL_SEPARATOR + endpointNameChar);
                 std::vector<std::string> inputs;
                 endpoints["!"+std::string(endpointNameChar)+ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(false, inputs, endpointNameChar);
@@ -405,11 +408,13 @@ extern "C" {
             Py_ssize_t pullPos = 0;
             while (PyDict_Next(pPullDict, &pullPos, &pullKey, &pullValue)) {
                 const char* endpointNameChar = PyUnicode_AsUTF8(pullKey);
+                if (endpointNameChar == nullptr) throw std::runtime_error("Could not get pull endpoint name!");
                 PyObject *streamsIterator = PyObject_GetIter(pullValue);
                 PyObject *streamItem;
                 std::vector<std::string> inputs;
                 while ((streamItem = PyIter_Next(streamsIterator))) {
                     const char* streamNameChar = PyUnicode_AsUTF8(streamItem);
+                    if (streamNameChar == nullptr) throw std::runtime_error("Could not get pull endpoint stream name!");
                     inputs.push_back(streamNameChar);
                     Py_DECREF(streamItem);
                 }

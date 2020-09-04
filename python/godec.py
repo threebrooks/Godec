@@ -11,6 +11,8 @@ class overrides:
     self.ov_dict = {}
 
   def add(self, key, val):
+    if (not key or not isinstance(key,str) or not val or not isinstance(val,str)):
+      raise RuntimeError("Invalid key or value")
     self.ov_dict[key] = val
 
 class push_endpoints:

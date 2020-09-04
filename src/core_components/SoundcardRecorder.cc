@@ -53,7 +53,9 @@ SoundcardRecorderComponent::SoundcardRecorderComponent(std::string id, Component
     mTotalPushedSamples = 0;
 }
 
-SoundcardRecorderComponent::~SoundcardRecorderComponent() {}
+SoundcardRecorderComponent::~SoundcardRecorderComponent() {
+    delete mRecorder;
+}
 
 void SoundcardRecorderComponent::Start() {
     mRecorder->startCapture();
@@ -383,6 +385,11 @@ LinuxAudioRecorder::LinuxAudioRecorder(std::string cardId, float samplingRate, i
     tttr("Couldn't prepare sound card", snd_pcm_prepare (capture_handle));
 }
 
+LinuxAudioRecorder::~LinuxAudioRecorder() {
+    stopCapture();
+}
+
+
 void LinuxAudioRecorder::startCapture() {
     if (snd_pcm_start(capture_handle) < 0) GODEC_ERR << "Couldn't start audio capture";
     //if (snd_pcm_pause(capture_handle, 0) < 0) GODEC_ERR << "Couldn't unpause audio capture";
@@ -394,7 +401,7 @@ void LinuxAudioRecorder::startCapture() {
 void LinuxAudioRecorder::stopCapture() {
     mKeepRunning = false;
     mProcThread.join();
-    if (snd_pcm_pause(capture_handle, 1) < 0) GODEC_ERR << "Couldn't pause audio capture";
+    //if (snd_pcm_pause(capture_handle, 1) < 0) GODEC_ERR << "Couldn't pause audio capture";
 }
 
 void LinuxAudioRecorder::ProcessLoop() {

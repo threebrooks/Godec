@@ -252,6 +252,7 @@ DecoderMessage_ptr FeaturesDecoderMessage::create(
     uint64_t _time, std::string _utteranceId,
     Matrix _feats, std::string _featureNames, std::vector<uint64_t> _featureTimestamps) {
     if (_feats.cols() != _featureTimestamps.size()) GODEC_ERR << "FeaturesDecoderMessage::create: feature #columns != timestamps size!";
+    if (_featureTimestamps.size() == 0) GODEC_ERR << "FeaturesDecoderMessage::create: timestamps size == 0!";
     if (_time != _featureTimestamps.back()) GODEC_ERR << "FeaturesDecoderMessage::create: time != last timestamp entry!";
     if (_feats.cols() == 0) GODEC_ERR << "FeaturesDecoderMessage::create: No empty payload allowed!";
     FeaturesDecoderMessage* msg = new FeaturesDecoderMessage();

@@ -25,7 +25,7 @@ WindowComponent::WindowComponent(std::string id, ComponentGraphConfig* configPt)
     initOutputs(requiredOutputSlots);
 
     /* initialize sampling parameters for the current waveform */
-    mLowLatency = configPt->get<bool>("low_latency", "Low-latency mode (assumes never-ending audio, can not be used in offline!)");
+    mLowLatency = configPt->get<bool>("low_latency", "Low-latency mode (assumes never-ending audio, can not be used in offline where utterances end!)");
     mSamplingRate = configPt->get<float>("sampling_frequency", "Source sampling rate");
     float local_fRate = configPt->get<float>("analysis_frame_step_size", "Analysis frame step size");
     float local_winDur = configPt->get<float>("analysis_frame_size", "Analysis frame size in milliseconds");
@@ -53,7 +53,9 @@ WindowComponent::WindowComponent(std::string id, ComponentGraphConfig* configPt)
 void WindowComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
     auto convStateMsg =msgBlock.get<ConversationStateDecoderMessage>(SlotConversationState);
     auto audioMsg =msgBlock.get<AudioDecoderMessage>(SlotStreamedAudio);
-    if (mSamplingRate != audioMsg->mSampleRate) { GODEC_ERR << getLPId() << ": Expected sampling rate " << mSamplingRate << ", got " << audioMsg->mSampleRate << std::endl; }
+    if (mSamplingRate != audioMsg->mSampleRate) {
+        GODEC_ERR << getLPId() << ": Expected sampling rate " << mSamplingRate << ", got " << audioMsg->mSampleRate << std::endl;
+    }
 
     float ticksPerSample = audioMsg->mTicksPerSample;
     const Vector& audio = audioMsg->mAudio;
@@ -63,7 +65,11 @@ void WindowComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
 
     int audioHoldoff = (mLowLatency || convStateMsg->mLastChunkInUtt) ? 0 : stepSize; // Problem is, we need to keep at least one window of audio around so that the last message can be tagged with the EOM boolean
     int nFrames = std::max(0.0, floor(((int)mAccumAudio.size() - mProcessPointerInAccumAudio - audioHoldoff) / (double)stepSize));
-    if (nFrames == 0 && !convStateMsg->mLastChunkInUtt) { return; }
+    if (nFrames == 0) {
+        if (!convStateMsg->mLastChunkInUtt) return;
+        else if (mLowLatency) GODEC_ERR << "You ran in low-latency mode but ended the utterance, this is not allowed";
+        else GODEC_ERR << "We should never end up here";
+    }
 
     Matrix outMat(windowSize, nFrames);
     std::vector<uint64_t> outTimestamps;
@@ -103,7 +109,9 @@ void WindowComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
     DecoderMessage_ptr featMsg = FeaturesDecoderMessage::create(
                                      outTimestamps.back(), convStateMsg->mUtteranceId,
                                      outMat, fmter.str(), outTimestamps);
-    if (audioMsg->getDescriptor("vtl_stretch") != "") { (boost::const_pointer_cast<DecoderMessage>(featMsg))->addDescriptor("vtl_stretch", audioMsg->getDescriptor("vtl_stretch")); }
+    if (audioMsg->getDescriptor("vtl_stretch") != "") {
+        (boost::const_pointer_cast<DecoderMessage>(featMsg))->addDescriptor("vtl_stretch", audioMsg->getDescriptor("vtl_stretch"));
+    }
     pushToOutputs(SlotWindowedAudio, featMsg);
 
     if (mProcessPointerInAccumAudio > 10*stepSize) {

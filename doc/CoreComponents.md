@@ -565,7 +565,7 @@ Chops incoming audio stream into windowed audio features
 | --- | --- | --- |
 | analysis\_frame\_size | float | Analysis frame size in milliseconds |
 | analysis\_frame\_step\_size | float | Analysis frame step size |
-| low\_latency | bool | Low-latency mode (assumes never-ending audio, can not be used in offline!) |
+| low\_latency | bool | Low-latency mode (assumes never-ending audio, can not be used in offline where utterances end!) |
 | sampling\_frequency | float | Source sampling rate |
 | windowing\_function | string | Windowing function (hamming,blackman, rectangle) |
 

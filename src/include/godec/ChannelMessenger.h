@@ -361,7 +361,7 @@ class ComponentGraphConfig {
                 return boost::lexical_cast<T>(outVal);
             }
         } catch (const std::exception& e) {
-            GODEC_ERR << mId << ": Unable to extract parameter '" << s << "' of type " << abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr) << std::endl << std::endl << "Reason: " << e.what();
+            GODEC_ERR << mId << ": Unable to extract parameter '" << s << "' of type " << abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr) << ", value is '" << outVal << "'" << std::endl << std::endl << "Reason: " << e.what();
         }
         // Only here to quiet the compiler
         GODEC_ERR << mId << ": This code path should never be executed";
@@ -389,7 +389,7 @@ class ComponentGraphConfig {
                 }
             }
         } catch (const std::exception& e) {
-            GODEC_ERR << mId << ": Unable to extract parameter '" << s << "' of type " << abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr) << std::endl << std::endl << "Reason: " << e.what();
+            GODEC_ERR << mId << ": Unable to extract parameter '" << s << "' of type " << abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr) << ", value is '" << *val << "'" << std::endl << std::endl << "Reason: " << e.what();
         }
         return boost::none;
     }

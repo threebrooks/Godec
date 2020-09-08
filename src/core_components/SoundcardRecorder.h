@@ -47,7 +47,6 @@ class WindowsSoundcardRecorder {
     HWAVEIN mHwi; // the input-device
 
     SoundcardRecorderComponent* mGodecComp;
-    bool mKeepRunning;
 
     boost::thread mProcThread;
     void ProcessLoop();
@@ -102,7 +101,6 @@ class LinuxAudioRecorder {
     snd_pcm_hw_params_t *hw_params;
 
     SoundcardRecorderComponent* mGodecComp;
-    bool mKeepRunning;
 
     float mSamplingRate;
     int mNumChannels;
@@ -115,8 +113,6 @@ class LinuxAudioRecorder {
 #endif
 
 enum SoundcardRecorderState {
-    NotPushing,
-    //ToldToStartPushing,
     Pushing,
     ToldToStopPushing
 };
@@ -128,6 +124,7 @@ class SoundcardRecorderComponent : public LoopProcessor, SoundDataReceiver {
     SoundcardRecorderComponent(std::string id, ComponentGraphConfig* configPt);
     virtual ~SoundcardRecorderComponent();
     bool receiveData(long numSamples, float sampleRate, int sampleDepth, int numChannels, const unsigned char* data) override;
+    int mRoundCounter;
   private:
     void ProcessMessage(const DecoderMessageBlock& msgBlock) override;
     void Start() override;
@@ -144,8 +141,7 @@ class SoundcardRecorderComponent : public LoopProcessor, SoundDataReceiver {
     std::string mCurrentUttId;
     int mTimeUpsampleFactor;
 
-    boost::mutex mStateMutex;
-    SoundcardRecorderState mState;
+    bool mStartOnBoot;
 };
 
 }

@@ -26,7 +26,7 @@ SoundcardRecorderComponent::SoundcardRecorderComponent(std::string id, Component
     int numChannels = configPt->get<int>("num_channels", "Number of channels (1=mono, 2=stereo)");
     int sampleDepth = configPt->get<int>("sample_depth", "Sample depth (8,16,24 etc bit)");
     int chunkSize = configPt->get<int>("chunk_size", "Chunk size in samples (set to -1 for minimum latency configuratio)");
-    bool startOnBoot = configPt->get<bool>("start_on_boot", "Whether audio should be pushed immediately");
+    mStartOnBoot = configPt->get<bool>("start_on_boot", "Whether audio should be pushed immediately");
     mTimeUpsampleFactor = 1;
     mTimeUpsampleFactor = configPt->get<int>("time_upsample_factor", "Factor by which the internal time stamps are increased. This is to prevent multiple subunits having the same time stamp.");
 #ifdef _MSC_VER
@@ -38,10 +38,7 @@ SoundcardRecorderComponent::SoundcardRecorderComponent(std::string id, Component
     mRecorder = new LinuxAudioRecorder(soundcardIdentifier, samplingRate, numChannels, sampleDepth, chunkSize, this);
 #endif
 
-    if (startOnBoot) {
-        mState = Pushing;
-    } else {
-        mState = NotPushing;
+    if (!mStartOnBoot) {
         addInputSlotAndUUID(SlotControl, UUID_ConversationStateDecoderMessage);
     }
 
@@ -58,41 +55,33 @@ SoundcardRecorderComponent::~SoundcardRecorderComponent() {
 }
 
 void SoundcardRecorderComponent::Start() {
-    mRecorder->startCapture();
     LoopProcessor::Start();
+    if (mStartOnBoot) {
+        mRecorder->startCapture();
+    }
 }
 
 bool SoundcardRecorderComponent::receiveData(long numSamples, float sampleRate, int sampleDepth, int numChannels, const unsigned char* data) {
-    boost::unique_lock<boost::mutex> lock(mStateMutex);
-    if (mState == Pushing || mState == ToldToStopPushing) {
-        std::stringstream ss;
-        ss << "base_format=PCM;sample_width=" << sampleDepth << ";sample_rate=" << sampleRate << ";vtl_stretch=1.0;num_channels=" << numChannels;
-        std::string formatString = ss.str();
-        mTotalPushedSamples += numSamples;
-        DecoderMessage_ptr audioMsg = BinaryDecoderMessage::create(mTimeUpsampleFactor*mTotalPushedSamples - 1, std::vector<unsigned char>(data, data + numSamples*numChannels*sampleDepth / 8), formatString);
-        pushToOutputs(SlotStreamedAudio, audioMsg);
-        bool lastChunkInUtt = (mState == ToldToStopPushing);
-        DecoderMessage_ptr convMsg = ConversationStateDecoderMessage::create(mTimeUpsampleFactor*mTotalPushedSamples - 1, mCurrentUttId, lastChunkInUtt, "convo", false);
-        pushToOutputs(SlotConversationState, convMsg);
-        if (lastChunkInUtt) {
-            mState = NotPushing;
-        }
+    std::stringstream ss;
+    ss << "base_format=PCM;sample_width=" << sampleDepth << ";sample_rate=" << sampleRate << ";vtl_stretch=1.0;num_channels=" << numChannels;
+    std::string formatString = ss.str();
+    mTotalPushedSamples += numSamples;
+    DecoderMessage_ptr audioMsg = BinaryDecoderMessage::create(mTimeUpsampleFactor*mTotalPushedSamples - 1, std::vector<unsigned char>(data, data + numSamples*numChannels*sampleDepth / 8), formatString);
+    pushToOutputs(SlotStreamedAudio, audioMsg);
+    bool lastChunkInUtt = false;
+    if (mRoundCounter == 1) {
+        lastChunkInUtt = true;
+        mRoundCounter--;
     }
+    DecoderMessage_ptr convMsg = ConversationStateDecoderMessage::create(mTimeUpsampleFactor*mTotalPushedSamples - 1, mCurrentUttId, lastChunkInUtt, "convo", false);
+    pushToOutputs(SlotConversationState, convMsg);
     return true;
 }
 
 void SoundcardRecorderComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
-    boost::unique_lock<boost::mutex> lock(mStateMutex);
     auto controlMsg = msgBlock.get<ConversationStateDecoderMessage>(SlotControl);
 
-    if (mState == Pushing) {
-        if (controlMsg->mLastChunkInUtt) {
-            mState = ToldToStopPushing;
-        }
-    } else if (mState == NotPushing) {
-        mCurrentUttId = controlMsg->mUtteranceId;
-        mState = Pushing;
-    }
+    controlMsg->mLastChunkInUtt ? mRecorder->stopCapture() : mRecorder->startCapture();
 }
 
 #ifdef _MSC_VER
@@ -186,7 +175,7 @@ void WindowsSoundcardRecorder::ProcessLoop() {
 
     if (waveInStart(mHwi) != MMSYSERR_NOERROR) GODEC_ERR << "Couldn't start sound capture";
 
-    while (mKeepRunning) {
+    while (mState != ToldToStopPushing) {
         while (!(whdr[currentBuffer].dwFlags & WHDR_DONE)) {
             Sleep(10);
         }
@@ -393,13 +382,12 @@ LinuxAudioRecorder::~LinuxAudioRecorder() {
 void LinuxAudioRecorder::startCapture() {
     if (snd_pcm_start(capture_handle) < 0) GODEC_ERR << "Couldn't start audio capture";
     //if (snd_pcm_pause(capture_handle, 0) < 0) GODEC_ERR << "Couldn't unpause audio capture";
-    mKeepRunning = true;
     mProcThread = boost::thread(&LinuxAudioRecorder::ProcessLoop, this);
     RegisterThreadForLogging(mProcThread, mGodecComp->getLogPtr(), mGodecComp->isVerbose());
 }
 
 void LinuxAudioRecorder::stopCapture() {
-    mKeepRunning = false;
+    mGodecComp->mRoundCounter--;
     mProcThread.join();
     //if (snd_pcm_pause(capture_handle, 1) < 0) GODEC_ERR << "Couldn't pause audio capture";
 }
@@ -408,7 +396,8 @@ void LinuxAudioRecorder::ProcessLoop() {
     int bufferSize = mChunkSize*(mSampleDepth/8)*mNumChannels;
     unsigned char* audioBuffer = new unsigned char[bufferSize];
     snd_pcm_sframes_t ret;
-    while (mKeepRunning) {
+    mGodecComp->mRoundCounter = 2;
+    do {
         ret = snd_pcm_readi(capture_handle, audioBuffer, mChunkSize);
         if (ret < 0) {
             if (ret == -EPIPE) {
@@ -420,7 +409,7 @@ void LinuxAudioRecorder::ProcessLoop() {
             else if (ret == -ESTRPIPE) GODEC_ERR << "Couldn't read audio, suspend event occurred";
         }
         mGodecComp->receiveData(mChunkSize, mSamplingRate, mSampleDepth, mNumChannels, audioBuffer);
-    }
+    } while (mGodecComp->mRoundCounter > 0);
 }
 
 #endif

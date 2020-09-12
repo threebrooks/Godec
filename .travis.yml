@@ -13,11 +13,12 @@ matrix:
         apt:
           sources:
               - sourceline: 'ppa:ubuntu-toolchain-r/test'
+              - sourceline: 'ppa:deadsnakes/ppa'
           packages:
           - g++-7
           - libeigen3-dev
           - libasound2-dev
-          - python3-dev
+          - python3.7-dev
           - python3-numpy
           - maven
       
@@ -80,7 +81,7 @@ matrix:
       - cd $HOME
       - export BOOST_ROOT=$HOME/boost_1_74_0
       - wget -q https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.bz2
-      - tar jxf 3.3.7.tar.bz2 -C $HOME
+      - tar jxf eigen-3.3.7.tar.bz2 -C $HOME
       - export EIGEN_ROOT=$HOME/eigen-3.3.7
       - mkdir $HOME/alsa
       - wget -q http://archive.raspberrypi.org/debian/pool/main/a/alsa-lib/libasound2_1.1.3-5+rpt4_armhf.deb
@@ -147,7 +148,7 @@ matrix:
       - unzip -q boost-android-r18b-armeabi-v7a-1.70.0.zip -d $HOME/boost
       - export BOOST_ROOT=$HOME/boost
       - wget -q https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.bz2
-      - tar jxf 3.3.7.tar.bz2 -C $HOME
+      - tar jxf eigen-3.3.7.tar.bz2 -C $HOME
       - export EIGEN_ROOT=$HOME/eigen-3.3.7
       - export CMAKE_ARGS="-DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$BOOST_ROOT/include/ -DBOOST_LIBRARYDIR=$BOOST_ROOT/lib/armeabi-v7a -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT"
       - echo no | android create avd --force --name test --target android-22 --abi armeabi-v7a
@@ -179,7 +180,7 @@ matrix:
       - 7z x boost_1_74_0-bin-msvc-all-32-64.7z boost_1_74_0/lib64-msvc-14.1/* boost_1_74_0/boost/* 
       - rm -f boost_1_74_0-bin-msvc-all-32-64.7z
       - wget -q https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.bz2
-      - tar jxf 3.3.7.tar.bz2 -C $HOME
+      - tar jxf eigen-3.3.7.tar.bz2 -C $HOME
       - export EIGEN_ROOT=$HOME/eigen-3.3.7
       - choco install python3.7
       - choco install numpy

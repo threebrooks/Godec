@@ -41,26 +41,6 @@ matrix:
     - language: cpp
       os: linux
       dist: xenial
-      services:
-      - docker
-      env: OS_TYPE=centos 
-           OS_VERSION=7
-           PLATFORM=Linux
-           OS_STRING=Centos7
-    
-      before_script:
-      - sudo apt-get update
-      - echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | sudo tee /etc/default/docker > /dev/null
-      - sudo service docker restart
-      - sleep 5
-      - sudo docker pull ${OS_TYPE}:${OS_TYPE}${OS_VERSION}
-  
-      script:
-      - sudo docker run --rm=true -v $HOME:$HOME:rw ${OS_TYPE}:${OS_TYPE}${OS_VERSION} /bin/bash -v -c " export MY_CMAKE=\"$MY_CMAKE\" && export MY_MAKE_COMMAND=\"$MY_MAKE_COMMAND\" && export TRAVIS_BUILD_DIR=\"$TRAVIS_BUILD_DIR\" && cd $TRAVIS_BUILD_DIR && export PLATFORM=\"$PLATFORM\" && export OS_STRING=\"$OS_STRING\" && export HOME=\"$HOME\" && ./centos7_build.sh " 
-
-    - language: cpp
-      os: linux
-      dist: xenial
       compiler: gcc
       addons:
         apt:

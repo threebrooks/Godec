@@ -363,9 +363,9 @@ class ComponentGraphConfig {
         } catch (const std::exception& e) {
             GODEC_ERR << mId << ": Unable to extract parameter '" << s << "' of type " <<
 #ifdef _MSC_VER
-                      abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr)
-#else
                       typeid(T).name()
+#else
+                      abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr)
 #endif
                       << ", value is '" << outVal << "'" << std::endl << std::endl << "Reason: " << e.what();
         }
@@ -397,9 +397,9 @@ class ComponentGraphConfig {
         } catch (const std::exception& e) {
             GODEC_ERR << mId << ": Unable to extract parameter '" << s << "' of type " <<
 #ifdef _MSC_VER
-                      abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr)
-#else
                       typeid(T).name()
+#else
+                      abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr)
 #endif
                       << ", value is '" << *val << "'" << std::endl << std::endl << "Reason: " << e.what();
         }

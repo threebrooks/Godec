@@ -175,7 +175,7 @@ void WindowsSoundcardRecorder::ProcessLoop() {
 
     if (waveInStart(mHwi) != MMSYSERR_NOERROR) GODEC_ERR << "Couldn't start sound capture";
 
-    while (mState != ToldToStopPushing) {
+    while (mGodecComp->mState != ToldToStopPushing) {
         while (!(whdr[currentBuffer].dwFlags & WHDR_DONE)) {
             Sleep(10);
         }
@@ -201,13 +201,11 @@ void WindowsSoundcardRecorder::ProcessLoop() {
 
 
 void WindowsSoundcardRecorder::startCapture() {
-    mKeepRunning = true;
     mProcThread = boost::thread(&WindowsSoundcardRecorder::ProcessLoop, this);
     RegisterThreadForLogging(mProcThread, mGodecComp->getLogPtr(), mGodecComp->isVerbose());
 }
 
 void WindowsSoundcardRecorder::stopCapture() {
-    mKeepRunning = false;
     mProcThread.join();
     if (waveInStop(mHwi) != MMSYSERR_NOERROR) GODEC_ERR << "Failed to stop audio recording.";
     waveInClose(mHwi);

@@ -21,7 +21,7 @@ matrix:
           - maven
       
       env: PYTHON_HOME=/usr
-           PATH=/usr/lib/jvm/java-8-openjdk-amd64/jre/bin:$PATH
+           PATH=/usr/lib/jvm/java-11-openjdk-amd64/jre/bin:$PATH
            CXX=g++-7 
            PLATFORM=Linux
            OS_STRING=Linux
@@ -96,14 +96,14 @@ matrix:
       - mkdir $HOME/jre
       - tar xf data.tar.xz -C $HOME/jre
       - mkdir $HOME/pydev
-      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python3.5/libpython3.5_3.5.3-1+deb9u1_armhf.deb
-      - ar x libpython3.5_3.5.3-1+deb9u1_armhf.deb
+      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python3.7/libpython3.7_3.7.3-2+deb10u2_armhf.deb
+      - ar x libpython3.7_3.7.3-2+deb10u2_armhf.deb
       - tar xf data.tar.xz -C $HOME/pydev 
-      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python3.5/libpython3.5-dev_3.5.3-1+deb9u1_armhf.deb
-      - ar x libpython3.5-dev_3.5.3-1+deb9u1_armhf.deb
+      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python3.7/libpython3.7-dev_3.7.3-2+deb10u2_armhf.deb
+      - ar x libpython3.7-dev_3.7.3-2+deb10u2_armhf.deb
       - tar xf data.tar.xz -C $HOME/pydev 
-      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python-numpy/python3-numpy_1.12.1-3_armhf.deb
-      - ar x python3-numpy_1.12.1-3_armhf.deb
+      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python-numpy/python3-numpy-dbg_1.16.2-1_armhf.deb	
+      - ar x python3-numpy-dbg_1.16.2-1_armhf.deb	
       - tar xf data.tar.xz -C $HOME/pydev 
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/e/expat/libexpat1_2.2.0-2+deb9u3_armhf.deb
       - ar x libexpat1_2.2.0-2+deb9u3_armhf.deb
@@ -115,10 +115,10 @@ matrix:
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/z/zlib/zlib1g_1.2.8.dfsg-5_armhf.deb
       - ar x zlib1g_1.2.8.dfsg-5_armhf.deb
       - tar xf data.tar.xz -C $HOME/zlib 
-      - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib/usr -DZLIB_LIBRARY=$HOME/zlib/lib/arm-linux-gnueabihf/libz.so.1 -DPYTHON_LIBRARY=$HOME/pydev/usr/lib/arm-linux-gnueabihf/libpython3.5m.so -DPYTHON_INCLUDE_DIR=$HOME/pydev/usr/include/python3.5m -DGODEC_ADDITIONAL_INCLUDE_DIRS=$HOME/pydev/usr/lib/python3.5m/numpy/\;$HOME/pydev/usr/include -DGODEC_ADDITIONAL_LINKER_DIRS=$HOME/pydev/lib/arm-linux-gnueabihf -DBOOST_INCLUDEDIR=$BOOST_ROOT -DBOOST_LIBRARYDIR=$BOOST_ROOT/stage/lib/ -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DALSA_LINKER_DIR=$HOME/alsa/usr/lib/arm-linux-gnueabihf -DALSA_INCLUDE_DIRS=$HOME/alsa/usr/include -DJNI_INCLUDE_DIRS=\"$HOME/jdk/java-8-openjdk-armhf/include/;$HOME/jdk/java-8-openjdk-armhf/include/linux\" -DJAVA_JVM_LIBRARY=$HOME/jre/usr/lib/jvm/java-8-openjdk-armhf/jre/lib/arm/client/libjvm.so"
+      - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib/usr -DZLIB_LIBRARY=$HOME/zlib/lib/arm-linux-gnueabihf/libz.so.1 -DPYTHON_LIBRARY=$HOME/pydev/usr/lib/arm-linux-gnueabihf/libpython3.5m.so -DPYTHON_INCLUDE_DIR=$HOME/pydev/usr/include/python3.5m -DGODEC_ADDITIONAL_INCLUDE_DIRS=$HOME/pydev/usr/lib/python3.5m/numpy/\;$HOME/pydev/usr/include -DGODEC_ADDITIONAL_LINKER_DIRS=$HOME/pydev/lib/arm-linux-gnueabihf -DBOOST_INCLUDEDIR=$BOOST_ROOT -DBOOST_LIBRARYDIR=$BOOST_ROOT/stage/lib/ -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DALSA_LINKER_DIR=$HOME/alsa/usr/lib/arm-linux-gnueabihf -DALSA_INCLUDE_DIRS=$HOME/alsa/usr/include -DJNI_INCLUDE_DIRS=\"$HOME/jdk/java-11-openjdk-armhf/include/;$HOME/jdk/java-11-openjdk-armhf/include/linux\" -DJAVA_JVM_LIBRARY=$HOME/jre/usr/lib/jvm/java-11-openjdk-armhf/jre/lib/arm/client/libjvm.so"
 
       env: PYTHON_HOME=$HOME/pydev/usr
-           PATH=/usr/lib/jvm/java-8-openjdk-amd64/jre/bin:$PATH
+           PATH=/usr/lib/jvm/java-11-openjdk-amd64/jre/bin:$PATH
            CXX=$HOME/gcc-linaro-7.4.1-2019.02-x86_64_armv8l-linux-gnueabihf/bin/armv8l-linux-gnueabihf-g++
            PLATFORM=RaspberryPi
            RASPBERRY_PI_OPT_FLAGS="-mcpu=cortex-a53 -rdynamic -mfpu=neon-fp-armv8 -mneon-for-64bits"
@@ -162,7 +162,7 @@ matrix:
           - android-26
           - sys-img-armeabi-v7a-android-22  
       env: PYTHON_HOME=/usr
-           PATH=/usr/lib/jvm/java-7-openjdk-amd64/jre/bin:$PATH
+           PATH=/usr/lib/jvm/java-11-openjdk-amd64/jre/bin:$PATH
            PLATFORM=Android
            OS_STRING=Android
 

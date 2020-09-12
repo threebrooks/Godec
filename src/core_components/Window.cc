@@ -115,9 +115,10 @@ void WindowComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
     pushToOutputs(SlotWindowedAudio, featMsg);
 
     if (mProcessPointerInAccumAudio > 10*stepSize) {
-        mAccumAudio = (Vector)mAccumAudio.tail(mAccumAudio.size()-mProcessPointerInAccumAudio);
-        mAccumAudioOffsetInUtt += mProcessPointerInAccumAudio;
-        mProcessPointerInAccumAudio = 0;
+        int64_t framesToRemove = mAccumAudio.size()-2*windowSize;
+        mAccumAudio = (Vector)mAccumAudio.tail(mAccumAudio.size()-framesToRemove);
+        mProcessPointerInAccumAudio -= framesToRemove;
+        mAccumAudioOffsetInUtt += framesToRemove;
     }
 
     if (convStateMsg->mLastChunkInUtt) {

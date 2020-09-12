@@ -19,6 +19,7 @@ matrix:
           - libeigen3-dev
           - libasound2-dev
           - python3.7-dev
+          - python3-numpy
           - python3-pip
           - maven
       

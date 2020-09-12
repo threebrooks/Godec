@@ -62,7 +62,7 @@ set(Boost_USE_MULTITHREADED ON)
 #set(Boost_DEBUG ON)
 
 find_package(Boost
-  1.74.0  
+  1.70.0  
   REQUIRED             # Fail with error if Boost is not found
   COMPONENTS date_time atomic regex system serialization filesystem iostreams timer chrono program_options thread 
   )

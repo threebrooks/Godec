@@ -26,14 +26,14 @@ matrix:
            PLATFORM=Linux
            OS_STRING=Linux
       before_script:
-      - wget -q https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz
-      - tar xf boost_1_68_0.tar.gz -C $HOME
-      - cd $HOME/boost_1_68_0
+      - wget -q https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.gz
+      - tar xf boost_1_74_0.tar.gz -C $HOME
+      - cd $HOME/boost_1_74_0
       - ./bootstrap.sh
       - ./b2 clean
       - ./b2 -j8 -d0 cxxstd=17 cxxflags=-fPIC cflags=-fPIC --without-python link=static threading=multi threadapi=pthread define=BOOST_MATH_DISABLE_FLOAT128
       - cd $HOME
-      - export BOOST_ROOT=$HOME/boost_1_68_0
+      - export BOOST_ROOT=$HOME/boost_1_74_0
       - export CMAKE_ARGS="-DBOOST_INCLUDEDIR=$BOOST_ROOT -DBOOST_LIBRARYDIR=$BOOST_ROOT/stage/lib/"
 
     - language: cpp
@@ -68,15 +68,15 @@ matrix:
       before_script:
       - wget -q https://releases.linaro.org/components/toolchain/binaries/7.4-2019.02/armv8l-linux-gnueabihf/gcc-linaro-7.4.1-2019.02-x86_64_armv8l-linux-gnueabihf.tar.xz
       - tar xf gcc-linaro-7.4.1-2019.02-x86_64_armv8l-linux-gnueabihf.tar.xz -C $HOME
-      - wget -q https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz
-      - tar xf boost_1_68_0.tar.gz -C $HOME
-      - cd $HOME/boost_1_68_0
+      - wget -q https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.gz
+      - tar xf boost_1_74_0.tar.gz -C $HOME
+      - cd $HOME/boost_1_74_0
       - ./bootstrap.sh
       - ./b2 clean
       - "echo \"using gcc : arm : $HOME/gcc-linaro-7.4.1-2019.02-x86_64_armv8l-linux-gnueabihf/bin/armv8l-linux-gnueabihf-g++ ;\" >> project-config.jam"
       - ./b2 toolset=gcc-arm -j8 -d0 cxxflags=-fPIC cflags=-fPIC --without-python link=static threading=multi threadapi=pthread define=BOOST_MATH_DISABLE_FLOAT128
       - cd $HOME
-      - export BOOST_ROOT=$HOME/boost_1_68_0
+      - export BOOST_ROOT=$HOME/boost_1_74_0
       - wget -q http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2
       - tar jxf 3.3.7.tar.bz2 -C $HOME
       - export EIGEN_ROOT=$HOME/eigen-eigen-323c052e1731
@@ -141,9 +141,9 @@ matrix:
       - echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"	
       - $ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch arm --api 21 --install-dir $HOME/android-clang-toolchain
       - export CXX=$HOME/android-clang-toolchain/bin/arm-linux-androideabi-clang++
-      - wget -q https://github.com/Manromen/Boost-for-Android/releases/download/Boost-1.68.0_2/boost-android-r18b-armeabi-v7a-1.68.0.zip
+      - wget -q https://github.com/Manromen/Boost-for-Android/releases/download/Boost-1.70.0/boost-android-r18b-armeabi-v7a-1.70.0.zip
       - mkdir "$HOME/boost" || true		
-      - unzip -q boost-android-r18b-armeabi-v7a-1.68.0.zip -d $HOME/boost
+      - unzip -q boost-android-r18b-armeabi-v7a-1.70.0.zip -d $HOME/boost
       - export BOOST_ROOT=$HOME/boost
       - wget -q http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2
       - tar jxf 3.3.7.tar.bz2 -C $HOME
@@ -174,9 +174,9 @@ matrix:
       - export MSBUILD_PATH="c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin"
       - export MY_CMAKE="c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
       - cd $HOME
-      - curl -O -J -L https://sourceforge.net/projects/boost/files/boost-binaries/1.68.0/boost_1_68_0-bin-msvc-all-32-64.7z/download
-      - 7z x boost_1_68_0-bin-msvc-all-32-64.7z boost_1_68_0/lib64-msvc-14.1/* boost_1_68_0/boost/* 
-      - rm -f boost_1_68_0-bin-msvc-all-32-64.7z
+      - curl -O -J -L https://sourceforge.net/projects/boost/files/boost-binaries/1.74.0/boost_1_74_0-bin-msvc-all-32-64.7z/download
+      - 7z x boost_1_74_0-bin-msvc-all-32-64.7z boost_1_74_0/lib64-msvc-14.1/* boost_1_74_0/boost/* 
+      - rm -f boost_1_74_0-bin-msvc-all-32-64.7z
       - wget -q http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2
       - tar jxf 3.3.7.tar.bz2 -C $HOME
       - export EIGEN_ROOT=$HOME/eigen-eigen-323c052e1731
@@ -192,7 +192,7 @@ matrix:
       - mv $HOME/zlib/msvc2015_64/include/zlib/* $HOME/zlib/msvc2015_64/include 
       - mv $HOME/zlib/msvc2015_64/lib/zlib/* $HOME/zlib/msvc2015_64/lib
       - export PATH=$PATH:$HOME/apache-maven-3.6.3/bin:$HOME/$JAVA_HOME/bin
-      - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib/msvc2015_64 -DZLIB_LIBRARY=$HOME/zlib/msvc2015_64/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_68_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_68_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python38/lib/site-packages/numpy/core/include"
+      - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib/msvc2015_64 -DZLIB_LIBRARY=$HOME/zlib/msvc2015_64/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_74_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_74_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python38/lib/site-packages/numpy/core/include"
       - export MY_MAKE_COMMAND="\"$MY_CMAKE\" --build . --target install --config Release"
 
 script:

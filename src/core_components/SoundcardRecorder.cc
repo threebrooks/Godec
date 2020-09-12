@@ -175,7 +175,8 @@ void WindowsSoundcardRecorder::ProcessLoop() {
 
     if (waveInStart(mHwi) != MMSYSERR_NOERROR) GODEC_ERR << "Couldn't start sound capture";
 
-    while (mGodecComp->mState != ToldToStopPushing) {
+    mGodecComp->mRoundCounter = 2;
+    do  {
         while (!(whdr[currentBuffer].dwFlags & WHDR_DONE)) {
             Sleep(10);
         }
@@ -196,7 +197,7 @@ void WindowsSoundcardRecorder::ProcessLoop() {
             break;
         }
         currentBuffer = (currentBuffer + 1) % numberOfBuffers;
-    }
+    } while (mGodecComp->mRoundCounter > 0);
 }
 
 
@@ -206,6 +207,7 @@ void WindowsSoundcardRecorder::startCapture() {
 }
 
 void WindowsSoundcardRecorder::stopCapture() {
+    mGodecComp->mRoundCounter--;
     mProcThread.join();
     if (waveInStop(mHwi) != MMSYSERR_NOERROR) GODEC_ERR << "Failed to stop audio recording.";
     waveInClose(mHwi);
@@ -311,11 +313,16 @@ AndroidAudioRecorder::AndroidAudioRecorder(float samplingRate, int numChannels, 
 
 }
 
+AndroidAudioRecorder::~AndroidAudioRecorder() {
+    stopCapture();
+}
+
 void AndroidAudioRecorder::startCapture() {
     if ((*recorderRecord)->SetRecordState(recorderRecord, SL_RECORDSTATE_RECORDING) != SL_RESULT_SUCCESS) GODEC_ERR << "Couldn't start capture";
 }
 
 void AndroidAudioRecorder::stopCapture() {
+    mGodecComp->mRoundCounter--;
     if ((*recorderRecord)->SetRecordState(recorderRecord, SL_RECORDSTATE_PAUSED) != SL_RESULT_SUCCESS) GODEC_ERR << "Couldn't pause capture";
 }
 

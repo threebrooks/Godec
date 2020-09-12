@@ -112,11 +112,6 @@ class LinuxAudioRecorder {
 };
 #endif
 
-enum SoundcardRecorderState {
-    Pushing,
-    ToldToStopPushing
-};
-
 class SoundcardRecorderComponent : public LoopProcessor, SoundDataReceiver {
   public:
     static LoopProcessor* make(std::string id, ComponentGraphConfig* configPt);

@@ -88,8 +88,8 @@ matrix:
       - tar xf data.tar.xz -C $HOME/pydev 
       - wget https://www.piwheels.org/simple/numpy/numpy-1.19.2-cp37-cp37m-linux_armv7l.whl
       - unzip numpy-1.19.2-cp37-cp37m-linux_armv7l.whl -d $HOME/pydev
-      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/e/expat/libexpat1_2.2.0-2+deb9u3_armhf.deb
-      - ar x libexpat1_2.2.0-2+deb9u3_armhf.deb
+      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/e/expat/libexpat1-dev_2.2.9-1_armhf.deb
+      - ar x libexpat1-dev_2.2.9-1_armhf.deb
       - tar xf data.tar.xz -C $HOME/pydev 
       - mkdir $HOME/zlib
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/z/zlib/zlib1g-dev_1.2.8.dfsg-5_armhf.deb
@@ -97,9 +97,6 @@ matrix:
       - tar xf data.tar.xz -C $HOME/zlib 
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/z/zlib/zlib1g_1.2.8.dfsg-5_armhf.deb
       - ar x zlib1g_1.2.8.dfsg-5_armhf.deb
-      - tar xf data.tar.xz -C $HOME/zlib 
-      - wget http://raspbian.raspberrypi.org/raspbian/pool/main/e/expat/libexpat1-dev_2.2.9-1_armhf.deb
-      - ar x libexpat1-dev_2.2.9-1_armhf.deb
       - tar xf data.tar.xz -C $HOME/zlib 
       - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib/usr -DZLIB_LIBRARY=$HOME/zlib/lib/arm-linux-gnueabihf/libz.so.1 -DPYTHON_LIBRARY=$HOME/pydev/usr/lib/arm-linux-gnueabihf/libpython3.7m.so -DPYTHON_INCLUDE_DIR=$HOME/pydev/usr/include/python3.7m -DGODEC_ADDITIONAL_INCLUDE_DIRS=$HOME/pydev/usr/lib/python3.7m/numpy/\;$HOME/pydev/usr/include\;$HOME/pydev/numpy/core/include/ -DGODEC_ADDITIONAL_LINKER_DIRS=$HOME/pydev/lib/arm-linux-gnueabihf -DBOOST_INCLUDEDIR=$BOOST_ROOT -DBOOST_LIBRARYDIR=$BOOST_ROOT/stage/lib/ -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DALSA_LINKER_DIR=$HOME/alsa/usr/lib/arm-linux-gnueabihf -DALSA_INCLUDE_DIRS=$HOME/alsa/usr/include -DJNI_INCLUDE_DIRS=\"$HOME/jdk/java-11-openjdk-armhf/include/;$HOME/jdk/java-11-openjdk-armhf/include/linux\" -DJAVA_JVM_LIBRARY=$HOME/jre/usr/lib/jvm/java-11-openjdk-armhf/lib/server/libjvm.so"
 

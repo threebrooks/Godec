@@ -187,6 +187,7 @@ target_link_libraries(godec_dynamic
         godec_core_static
         Boost::program_options Boost::regex Boost::system Boost::serialization Boost::filesystem Boost::iostreams Boost::timer Boost::chrono Boost::thread
 	${LINKER_LIBS}
+        ${GODEC_ADDITIONAL_LIBS}
         )
 
 if (PLATFORM STREQUAL "Windows")
@@ -204,6 +205,7 @@ target_link_libraries(godec
         godec_core_static
         Boost::program_options Boost::regex Boost::system Boost::serialization Boost::filesystem Boost::iostreams Boost::timer Boost::chrono Boost::thread
 	${LINKER_LIBS}
+        ${GODEC_ADDITIONAL_LIBS}
         )
 
 install (TARGETS godec DESTINATION bin)

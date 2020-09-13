@@ -65,11 +65,11 @@ matrix:
       - tar jxf eigen-3.3.7.tar.bz2 -C $HOME
       - export EIGEN_ROOT=$HOME/eigen-3.3.7
       - mkdir $HOME/alsa
-      - wget -q http://archive.raspberrypi.org/debian/pool/main/a/alsa-lib/libasound2_1.1.3-5+rpt4_armhf.deb
-      - ar x libasound2_1.1.3-5+rpt4_armhf.deb
+      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/a/alsa-lib/libasound2_1.2.3.2-1_armhf.deb
+      - ar x libasound2_1.2.3.2-1_armhf.deb
       - tar xf data.tar.xz -C $HOME/alsa
-      - wget -q http://archive.raspberrypi.org/debian/pool/main/a/alsa-lib/libasound2-dev_1.1.3-5+rpi3_armhf.deb
-      - ar x libasound2-dev_1.1.3-5+rpi3_armhf.deb
+      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/a/alsa-lib/libasound2-dev_1.2.3.2-1_armhf.deb
+      - ar x libasound2-dev_1.2.3.2-1_armhf.deb
       - tar xf data.tar.xz -C $HOME/alsa
       - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-11/openjdk-11-jdk_11.0.8%2B10-1~deb10u1_armhf.deb
       - ar x openjdk-11-jdk_11.0.8+10-1~deb10u1_armhf.deb
@@ -97,6 +97,9 @@ matrix:
       - tar xf data.tar.xz -C $HOME/zlib 
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/z/zlib/zlib1g_1.2.8.dfsg-5_armhf.deb
       - ar x zlib1g_1.2.8.dfsg-5_armhf.deb
+      - tar xf data.tar.xz -C $HOME/zlib 
+      - wget http://raspbian.raspberrypi.org/raspbian/pool/main/e/expat/libexpat1-dev_2.2.9-1_armhf.deb
+      - ar x libexpat1-dev_2.2.9-1_armhf.deb
       - tar xf data.tar.xz -C $HOME/zlib 
       - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib/usr -DZLIB_LIBRARY=$HOME/zlib/lib/arm-linux-gnueabihf/libz.so.1 -DPYTHON_LIBRARY=$HOME/pydev/usr/lib/arm-linux-gnueabihf/libpython3.7m.so -DPYTHON_INCLUDE_DIR=$HOME/pydev/usr/include/python3.7m -DGODEC_ADDITIONAL_INCLUDE_DIRS=$HOME/pydev/usr/lib/python3.7m/numpy/\;$HOME/pydev/usr/include\;$HOME/pydev/numpy/core/include/ -DGODEC_ADDITIONAL_LINKER_DIRS=$HOME/pydev/lib/arm-linux-gnueabihf -DBOOST_INCLUDEDIR=$BOOST_ROOT -DBOOST_LIBRARYDIR=$BOOST_ROOT/stage/lib/ -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DALSA_LINKER_DIR=$HOME/alsa/usr/lib/arm-linux-gnueabihf -DALSA_INCLUDE_DIRS=$HOME/alsa/usr/include -DJNI_INCLUDE_DIRS=\"$HOME/jdk/java-11-openjdk-armhf/include/;$HOME/jdk/java-11-openjdk-armhf/include/linux\" -DJAVA_JVM_LIBRARY=$HOME/jre/usr/lib/jvm/java-11-openjdk-armhf/lib/server/libjvm.so"
 

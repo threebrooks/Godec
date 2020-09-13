@@ -77,7 +77,7 @@ matrix:
       - mkdir $HOME/jdk
       - tar xf data.tar.xz -C $HOME/jdk
       - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-11/openjdk-11-jre-headless_11.0.8%2B10-1_armhf.deb
-      - ar x openjdk-11-jre-headless_11.0.8%2B10-1_armhf.deb
+      - ar x openjdk-11-jre-headless_11.0.8+10-1_armhf.deb
       - mkdir $HOME/jre
       - tar xf data.tar.xz -C $HOME/jre
       - mkdir $HOME/pydev

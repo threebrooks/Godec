@@ -6,6 +6,6 @@ then
   exit -1
 fi
 
-PYTHON=$PYTHON_HOME/bin/python3
+PYTHON=$PYTHON_HOME/bin/python3.7
 
 $PYTHON python_wrapper_test.py python_wrapper.json

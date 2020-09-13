@@ -9,7 +9,7 @@ then
 fi
 
 
-PYTHON=$PYTHON_HOME/bin/python3
+PYTHON=$PYTHON_HOME/bin/python3.7
 if [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
   PYTHON_HOME_CYGWIN=$(cygpath -m $PYTHON_HOME)
   PYTHON=$PYTHON_HOME_CYGWIN/python.exe 

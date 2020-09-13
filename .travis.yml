@@ -71,12 +71,12 @@ matrix:
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/a/alsa-lib/libasound2-dev_1.2.3.2-1_armhf.deb
       - ar x libasound2-dev_1.2.3.2-1_armhf.deb
       - tar xf data.tar.xz -C $HOME/alsa
-      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-11/openjdk-11-jdk_11.0.8%2B10-1~deb10u1_armhf.deb
-      - ar x openjdk-11-jdk_11.0.8+10-1~deb10u1_armhf.deb
+      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-10/openjdk-10-jdk_10.0.2%2B13-2_armhf.deb
+      - ar x openjdk-10-jdk_10.0.2+13-2_armhf.deb 
       - mkdir $HOME/jdk
       - tar xf data.tar.xz -C $HOME/jdk
-      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-11/openjdk-11-jre-headless_11.0.8%2B10-1_armhf.deb
-      - ar x openjdk-11-jre-headless_11.0.8+10-1_armhf.deb
+      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-10/openjdk-10-jre-headless_10.0.2%2B13-2_armhf.deb
+      - ar x openjdk-10-jre-headless_10.0.2+13-2_armhf.deb 
       - mkdir $HOME/jre
       - tar xf data.tar.xz -C $HOME/jre
       - mkdir $HOME/pydev
@@ -98,10 +98,10 @@ matrix:
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/z/zlib/zlib1g_1.2.8.dfsg-5_armhf.deb
       - ar x zlib1g_1.2.8.dfsg-5_armhf.deb
       - tar xf data.tar.xz -C $HOME/zlib 
-      - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib/usr -DZLIB_LIBRARY=$HOME/zlib/lib/arm-linux-gnueabihf/libz.so.1 -DPYTHON_LIBRARY=$HOME/pydev/usr/lib/arm-linux-gnueabihf/libpython3.7m.so -DPYTHON_INCLUDE_DIR=$HOME/pydev/usr/include/python3.7m -DGODEC_ADDITIONAL_INCLUDE_DIRS=$HOME/pydev/usr/lib/python3.7m/numpy/\;$HOME/pydev/usr/include\;$HOME/pydev/numpy/core/include/ -DGODEC_ADDITIONAL_LINKER_DIRS=$HOME/pydev/lib/arm-linux-gnueabihf -DBOOST_INCLUDEDIR=$BOOST_ROOT -DBOOST_LIBRARYDIR=$BOOST_ROOT/stage/lib/ -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DALSA_LINKER_DIR=$HOME/alsa/usr/lib/arm-linux-gnueabihf -DALSA_INCLUDE_DIRS=$HOME/alsa/usr/include -DJNI_INCLUDE_DIRS=\"$HOME/jdk/java-11-openjdk-armhf/include/;$HOME/jdk/java-11-openjdk-armhf/include/linux\" -DJAVA_JVM_LIBRARY=$HOME/jre/usr/lib/jvm/java-11-openjdk-armhf/lib/server/libjvm.so -DGODEC_ADDITIONAL_LIBS=$HOME/pydev/lib/arm-linux-gnueabihf/libexpat.so.1.6.11"
+      - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib/usr -DZLIB_LIBRARY=$HOME/zlib/lib/arm-linux-gnueabihf/libz.so.1 -DPYTHON_LIBRARY=$HOME/pydev/usr/lib/arm-linux-gnueabihf/libpython3.7m.so -DPYTHON_INCLUDE_DIR=$HOME/pydev/usr/include/python3.7m -DGODEC_ADDITIONAL_INCLUDE_DIRS=$HOME/pydev/usr/lib/python3.7m/numpy/\;$HOME/pydev/usr/include\;$HOME/pydev/numpy/core/include/ -DGODEC_ADDITIONAL_LINKER_DIRS=$HOME/pydev/lib/arm-linux-gnueabihf -DBOOST_INCLUDEDIR=$BOOST_ROOT -DBOOST_LIBRARYDIR=$BOOST_ROOT/stage/lib/ -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DALSA_LINKER_DIR=$HOME/alsa/usr/lib/arm-linux-gnueabihf -DALSA_INCLUDE_DIRS=$HOME/alsa/usr/include -DJNI_INCLUDE_DIRS=\"$HOME/jdk/java-10-openjdk-armhf/include/;$HOME/jdk/java-10-openjdk-armhf/include/linux\" -DJAVA_JVM_LIBRARY=$HOME/jre/usr/lib/jvm/java-10-openjdk-armhf/lib/server/libjvm.so -DGODEC_ADDITIONAL_LIBS=$HOME/pydev/lib/arm-linux-gnueabihf/libexpat.so.1.6.11"
 
       env: PYTHON_HOME=$HOME/pydev/usr
-           PATH=/usr/lib/jvm/java-11-openjdk-amd64/jre/bin:$PATH
+           PATH=/usr/lib/jvm/java-10-openjdk-amd64/jre/bin:$PATH
            PLATFORM=RaspberryPi
            RASPBERRY_PI_OPT_FLAGS="-mcpu=cortex-a53 -rdynamic -mfpu=neon-fp-armv8 -mneon-for-64bits"
            OS_STRING=RaspberryPi3

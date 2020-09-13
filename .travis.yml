@@ -88,8 +88,8 @@ matrix:
       - tar xf data.tar.xz -C $HOME/pydev 
       - wget https://www.piwheels.org/simple/numpy/numpy-1.19.2-cp37-cp37m-linux_armv7l.whl
       - unzip numpy-1.19.2-cp37-cp37m-linux_armv7l.whl -d $HOME/pydev
-      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/e/expat/expat_2.2.9-1_armhf.deb
-      - ar x expat_2.2.9-1_armhf.deb
+      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/e/expat/libexpat1_2.2.9-1_armhf.deb
+      - ar x libexpat1_2.2.9-1_armhf.deb
       - tar xf data.tar.xz -C $HOME/pydev 
       - mkdir $HOME/zlib
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/z/zlib/zlib1g-dev_1.2.8.dfsg-5_armhf.deb

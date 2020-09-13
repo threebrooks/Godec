@@ -49,7 +49,7 @@ matrix:
           - maven
       
       before_script:
-      - wget https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/Buster/GCC%2010.1.0/Raspberry%20Pi%203A%2B%2C%203B%2B%2C%204/cross-gcc-10.1.0-pi_3%2B.tar.gz/download
+      - wget https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/Buster/GCC%2010.1.0/Raspberry%20Pi%203A%2B%2C%203B%2B%2C%204/cross-gcc-10.1.0-pi_3%2B.tar.gz/download -O cross-gcc-10.1.0-pi_3+.tar.gz
       - tar xvzf cross-gcc-10.1.0-pi_3+.tar.gz -C $HOME
       - wget -q https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.gz
       - tar xf boost_1_74_0.tar.gz -C $HOME

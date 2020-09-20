@@ -28,8 +28,9 @@ ProcessingMode StringToProcessMode(std::string s) {
 }
 
 #ifndef ANDROID
-int GodecMessages_init_numpy() {
+static void* GodecMessages_init_numpy() {
     import_array();
+    return NULL;
 }
 #endif
 

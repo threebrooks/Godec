@@ -20,8 +20,8 @@ set(SOURCE_FILES
         FeatureNormalizer.h
         FileFeeder.h
         FileFeeder.cc
-        cnpy.h
-        cnpy.cpp
+        ${CNPY_DIR}/cnpy.h
+        ${CNPY_DIR}/cnpy.cpp
         resample.h
         resample.cc
         FileWriter.h
@@ -53,6 +53,7 @@ set(SOURCE_FILES
         )
 
 add_library(godec_core_static STATIC ${SOURCE_FILES})
+target_include_directories(godec_core_static PUBLIC ${CNPY_DIR})
 
 if (PLATFORM STREQUAL "Windows")
   set(GODEC_CORE_NAME "libgodec_core")

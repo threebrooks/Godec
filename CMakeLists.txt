@@ -128,6 +128,7 @@ include_directories(
   ${ALSA_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   ${GODEC_ADDITIONAL_INCLUDE_DIRS}
+  $ENV{HOME}/json/include
   )
 
 link_directories(

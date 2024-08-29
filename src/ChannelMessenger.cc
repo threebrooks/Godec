@@ -1,7 +1,7 @@
 #include <godec/ChannelMessenger.h>
 #include <godec/ComponentGraph.h>
 #include "core_components/GodecMessages.h"
-#include <godec/json.hpp>
+#include <nlohmann/json.hpp>
 #include <boost/bimap.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>

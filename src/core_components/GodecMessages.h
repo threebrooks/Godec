@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include "boost/function.hpp"
-#include <godec/json.hpp>
+#include <nlohmann/json.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>

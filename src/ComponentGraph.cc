@@ -1,7 +1,7 @@
 #include <godec/ComponentGraph.h>
 #include <godec/HelperFuncs.h>
 #include <godec/version.h>
-#include <godec/json.hpp>
+#include <nlohmann/json.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>

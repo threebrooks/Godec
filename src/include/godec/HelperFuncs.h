@@ -5,7 +5,7 @@
 #include "Eigen/src/Core/util/Macros.h"
 #include "version.h"
 #include "boost/function.hpp"
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>

@@ -6,7 +6,7 @@
 #include <fstream>
 #include "godec/ChannelMessenger.h"
 #include "GodecMessages.h"
-#include "godec/json.hpp"
+#include "nlohmann/json.hpp"
 #include "cnpy.h"
 
 namespace Godec {
